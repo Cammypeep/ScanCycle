@@ -12,8 +12,10 @@ export const Route=createFileRoute('/_authenticated/leaderboard')({head:()=>({me
 function Leaderboard(){
   const {data:profile}=useQuery(profileQuery);
   const [scope,setScope]=useState<'country'|'world'>('country');
+  const [period,setPeriod]=useState<'week'|'month'>('week');
   const country=scope==='country'?profile?.country:undefined;
-  const board=useQuery({queryKey:['leaderboard',scope,country],enabled:!!profile,queryFn:async()=>{const {data,error}=await supabase.rpc('leaderboard',country?{_country:country}:{});if(error)throw error;return data;},refetchInterval:30000});
+  const since=period==='week'?startOfWeek():startOfMonth();
+  const board=useQuery({queryKey:['leaderboard',scope,country,period],enabled:!!profile,queryFn:async()=>{const {data,error}=await supabase.rpc('leaderboard',{...(country?{_country:country}:{}),_since:since});if(error)throw error;return data;},refetchInterval:30000});
   return (
     <section className="mx-auto max-w-3xl px-4 py-10">
       <p className="font-mono text-xs uppercase text-primary">Top recyclers</p>
