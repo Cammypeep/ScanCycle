@@ -19,8 +19,24 @@ export const RECYCLABILITY = [
 ] as const;
 export type Recyclability = (typeof RECYCLABILITY)[number];
 
+export const BIN_COLORS = ["blue", "green", "yellow", "gray", "black", "brown", "red", "special_dropoff"] as const;
+export type BinColor = (typeof BIN_COLORS)[number];
+
+export const BIN_SWATCH: Record<BinColor, string> = {
+  blue: "#2563eb",
+  green: "#16a34a",
+  yellow: "#eab308",
+  gray: "#9ca3af",
+  black: "#1f2937",
+  brown: "#92400e",
+  red: "#dc2626",
+  special_dropoff: "#f97316",
+};
+
 export interface Analysis {
   objectName: string;
+  binColor?: BinColor;
+  binName?: string;
   primaryMaterial: Material;
   secondaryMaterials: Material[];
   recyclability: Recyclability;

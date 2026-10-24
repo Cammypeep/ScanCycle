@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { MATERIALS, RECYCLABILITY, type Analysis } from "./scan-types";
+import { BIN_COLORS, MATERIALS, RECYCLABILITY, type Analysis } from "./scan-types";
 
 const MAX_DATA_URL_CHARS = 8_000_000; // ~6MB image
 const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
@@ -9,6 +9,8 @@ const schema = {
   additionalProperties: false,
   required: [
     "objectName",
+    "binColor",
+    "binName",
     "primaryMaterial",
     "secondaryMaterials",
     "recyclability",
@@ -21,6 +23,8 @@ const schema = {
   ],
   properties: {
     objectName: { type: "string" },
+    binColor: { type: "string", enum: [...BIN_COLORS] },
+    binName: { type: "string" },
     primaryMaterial: { type: "string", enum: [...MATERIALS] },
     secondaryMaterials: { type: "array", items: { type: "string", enum: [...MATERIALS] } },
     recyclability: { type: "string", enum: [...RECYCLABILITY] },
@@ -38,7 +42,8 @@ Rules:
 - Base everything on what is visible. Never invent numeric confidence scores or percentages.
 - A photo cannot determine exact metal alloy or guarantee recyclability; say so when relevant.
 - If the material is ambiguous (e.g. steel vs aluminum, coated paper, plastic type), set needsVerification true, use "uncertain" or "mixed_unknown" where appropriate, and explain in uncertaintyNotes how to verify (magnet test, resin code, etc.).
-- preparationSteps: 3-6 short, practical steps (empty, rinse, remove caps/labels, separate parts...).
+- binColor/binName: the most common bin for this item (typical North American scheme: blue = mixed recycling, green = glass or organics, gray/black = trash, special_dropoff for batteries/e-waste/hazardous). binName is a short label like "Blue recycling bin".
+- preparationSteps: 2-4 short, practical steps (empty, rinse, remove caps/labels, separate parts...).
 - environmentalInfo: 2-3 sentences on why recycling this material matters; only well-established facts.
 - safetyWarnings: include warnings for batteries, electronics, sharp edges, aerosols, chemicals, broken glass. Empty array if none.
 - If no recognizable object is visible, set objectName to "Unrecognized object", primaryMaterial "mixed_unknown", recyclability "uncertain".

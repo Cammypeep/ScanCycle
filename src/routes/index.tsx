@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Camera, Cpu, ClipboardCheck, ScanLine, Zap, Factory, Infinity as InfinityIcon } from "lucide-react";
+import { Camera, Cpu, ClipboardCheck, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import hero from "@/assets/hero.jpg";
 
@@ -21,11 +21,6 @@ const steps = [
   { icon: ClipboardCheck, title: "Recycle it", text: "Get a prep checklist, safety notes, and where it should go." },
 ];
 
-const facts = [
-  { icon: Zap, stat: "~95%", label: "less energy to make aluminum from recycled cans than from raw ore" },
-  { icon: Factory, stat: "#1", label: "steel is the most recycled material on the planet by weight" },
-  { icon: InfinityIcon, stat: "∞", label: "steel and aluminum can be recycled repeatedly without losing quality" },
-];
 
 function Index() {
   return (
@@ -79,22 +74,18 @@ function Index() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div className="glass relative overflow-hidden rounded-3xl p-8 sm:p-12">
           <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
-          <p className="font-mono text-xs uppercase tracking-widest text-primary">Why metals matter</p>
+          <p className="font-mono text-xs uppercase tracking-widest text-primary">Why recycling is important</p>
           <h2 className="mt-2 max-w-2xl text-3xl font-bold sm:text-4xl">
-            <span className="text-steel">Steel &amp; aluminum</span> are the heroes of the circular economy.
+            Small actions save energy, resources and landfill space.
           </h2>
-          <div className="mt-10 grid gap-6 sm:grid-cols-3">
-            {facts.map((f) => (
-              <div key={f.label}>
-                <f.icon className="h-5 w-5 text-primary" />
-                <div className="mt-3 font-display text-4xl font-bold text-emerald">{f.stat}</div>
-                <p className="mt-1 text-sm text-muted-foreground">{f.label}</p>
-              </div>
-            ))}
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild variant="hero" size="lg">
+              <Link to="/why-recycle">Learn why it matters</Link>
+            </Button>
+            <Button asChild variant="glass" size="lg">
+              <Link to="/scan">Start scanning</Link>
+            </Button>
           </div>
-          <Button asChild variant="hero" size="lg" className="mt-10">
-            <Link to="/scan">Start scanning</Link>
-          </Button>
         </div>
       </section>
     </>

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as ScanRouteImport } from './routes/scan'
+import { Route as WhyRecycleRouteImport } from './routes/why-recycle'
 import { Route as ResultIdRouteImport } from './routes/result.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const ScanRoute = ScanRouteImport.update({
   path: '/scan',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WhyRecycleRoute = WhyRecycleRouteImport.update({
+  id: '/why-recycle',
+  path: '/why-recycle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResultIdRoute = ResultIdRouteImport.update({
   id: '/result/$id',
   path: '/result/$id',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/history': typeof HistoryRoute
   '/scan': typeof ScanRoute
+  '/why-recycle': typeof WhyRecycleRoute
   '/result/$id': typeof ResultIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/history': typeof HistoryRoute
   '/scan': typeof ScanRoute
+  '/why-recycle': typeof WhyRecycleRoute
   '/result/$id': typeof ResultIdRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/history': typeof HistoryRoute
   '/scan': typeof ScanRoute
+  '/why-recycle': typeof WhyRecycleRoute
   '/result/$id': typeof ResultIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/history' | '/scan' | '/result/$id'
+  fullPaths: '/' | '/history' | '/scan' | '/why-recycle' | '/result/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/history' | '/scan' | '/result/$id'
-  id: '__root__' | '/' | '/history' | '/scan' | '/result/$id'
+  to: '/' | '/history' | '/scan' | '/why-recycle' | '/result/$id'
+  id: '__root__' | '/' | '/history' | '/scan' | '/why-recycle' | '/result/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HistoryRoute: typeof HistoryRoute
   ScanRoute: typeof ScanRoute
+  WhyRecycleRoute: typeof WhyRecycleRoute
   ResultIdRoute: typeof ResultIdRoute
 }
 
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/why-recycle': {
+      id: '/why-recycle'
+      path: '/why-recycle'
+      fullPath: '/why-recycle'
+      preLoaderRoute: typeof WhyRecycleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/result/$id': {
       id: '/result/$id'
       path: '/result/$id'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HistoryRoute: HistoryRoute,
   ScanRoute: ScanRoute,
+  WhyRecycleRoute: WhyRecycleRoute,
   ResultIdRoute: ResultIdRoute,
 }
 export const routeTree = rootRouteImport
