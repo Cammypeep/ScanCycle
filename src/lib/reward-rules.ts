@@ -1,9 +1,22 @@
 import { z } from 'zod';
 import { binsFor, hasColorGuide } from './bin-guides';
-export const itemSchema=z.object({object:z.string().max(150),outcome:z.enum(['correct','incorrect','uncertain']),stream:z.enum(['recycling','trash','compost','glass','paper','packaging']).optional(),guidance:z.string().max(500)});
+export const itemSchema=z.object({object:z.string().max(150),outcome:z.enum(['correct','incorrect','uncertain']),stream:z.enum(['recycling','trash','compost','glass','paper','packaging']).optional(),material:z.enum(['plastic','paper','cardboard','metal','glass','other']).optional(),guidance:z.string().max(500)});
 export const binSchema=z.object({color:z.string().max(40),labelText:z.string().max(100),visible:z.boolean()});
 export const verificationSchema=z.object({items:z.array(itemSchema).max(100),summary:z.string().max(1000),bin:binSchema.optional(),binMeaning:z.string().max(300).optional()});
 export type Verification=z.infer<typeof verificationSchema>;
+export const MATERIALS=['plastic','paper','cardboard','metal','glass','other'] as const;
+export type Material=typeof MATERIALS[number];
+/** Item material from the AI, or a keyword guess for older results. */
+export function materialOf(item:{object:string;material?:Material}):Material{
+  if(item.material)return item.material;
+  const o=item.object.toLowerCase();
+  if(/cardboard|carton|box/.test(o))return 'cardboard';
+  if(/\bcans?\b|alumin|tin|steel|metal|foil/.test(o))return 'metal';
+  if(/glass|jar/.test(o))return 'glass';
+  if(/paper|newspaper|magazine|envelope|receipt/.test(o))return 'paper';
+  if(/plastic|bottle|jug|tub|cup|container/.test(o))return 'plastic';
+  return 'other';
+}
 export function itemPoints(item:Verification['items'][number]){return item.outcome==='correct'&&['recycling','glass','paper','packaging'].includes(item.stream??'')?10:0;}
 export function calculatePoints(items:Verification['items']){return items.reduce((total,item)=>total+itemPoints(item),0);}
 
