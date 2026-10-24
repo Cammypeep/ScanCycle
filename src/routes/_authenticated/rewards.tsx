@@ -1,16 +1,16 @@
 import {createFileRoute} from '@tanstack/react-router';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useServerFn} from '@tanstack/react-start';
-import {useEffect,useRef,useState} from 'react';
-import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target} from 'lucide-react';
+import {useEffect,useMemo,useRef,useState} from 'react';
+import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {supabase} from '@/integrations/supabase/client';
 import {profileQuery} from '@/lib/account';
 import {verifyVideo} from '@/lib/rewards.functions';
-import {verificationSchema,itemPoints,type Verification} from '@/lib/reward-rules';
+import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,type Verification} from '@/lib/reward-rules';
 import {BIN_SWATCH} from '@/lib/scan-types';
 
-export const Route=createFileRoute('/_authenticated/rewards')({head:()=>({meta:[{title:'Recycling rewards — ScrapSense'},{name:'description',content:'Earn 10 points per correctly recycled item with video verification.'},{property:'og:title',content:'Recycling rewards — ScrapSense'},{property:'og:description',content:'Your verified recycling points.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Rewards});
+export const Route=createFileRoute('/_authenticated/rewards')({head:()=>({meta:[{title:'Recycling rewards — ScrapSense'},{name:'description',content:'Earn points scaled to what you recycle, verified by video.'},{property:'og:title',content:'Recycling rewards — ScrapSense'},{property:'og:description',content:'Your verified recycling points.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Rewards});
 
 /** Matches the "Use the yellow recycling bin instead." guidance sentence. */
 const USE_BIN=/Use the ([a-z]+) ([a-z ]+?) bin(?: instead)?\./i;
