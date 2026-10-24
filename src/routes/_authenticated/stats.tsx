@@ -19,7 +19,7 @@ function buckets(range:Range,rows:{created_at:string;correct_items:number;points
     for(let i=n-1;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);out.push({key:day(d),label:d.toLocaleDateString(undefined,range==='week'?{weekday:'short'}:{month:'short',day:'numeric'}),items:0});}
     rows.forEach(r=>{const b=out.find(o=>o.key===day(new Date(r.created_at)));if(b)b.items+=(r.points??0)/10;});
   }else{
-    const months=range==='year'?12:Math.max(1,(()=>{const f=rows.length?new Date(rows[rows.length-1].created_at):now;return (now.getFullYear()-f.getFullYear())*12+now.getMonth()-f.getMonth()+1;})());
+    const months=range==='year'?12:Math.max(1,(()=>{const last=rows[rows.length-1];const f=last?new Date(last.created_at):now;return (now.getFullYear()-f.getFullYear())*12+now.getMonth()-f.getMonth()+1;})());
     for(let i=months-1;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);out.push({key:d.getFullYear()+'-'+d.getMonth(),label:d.toLocaleDateString(undefined,{month:'short',year:months>12?'2-digit':undefined}),items:0});}
     rows.forEach(r=>{const d=new Date(r.created_at);const b=out.find(o=>o.key===d.getFullYear()+'-'+d.getMonth());if(b)b.items+=(r.points??0)/10;});
   }
