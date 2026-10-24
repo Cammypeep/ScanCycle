@@ -19,10 +19,21 @@ export function resolveBin(country:string,bin:z.infer<typeof binSchema>):{ok:tru
   return {ok:true,meaning:match.label};
 }
 
+/** Sentences that talk about the footage instead of the user, e.g. "This video shows ...". */
+const PREAMBLE=/^(?:this\s+(?:video|clip|footage|recording)\s+(?:shows|showed|contains|contained|depicts|features|captures|is\s+of|of)\s*[:;,]?\s*)+/i;
+
+/** Keeps the result sentence about the user and short: strips footage preambles and trims overlong text. */
+export function tidySummary(s:string):string{
+  const t=s.replace(PREAMBLE,'').replace(/\s+/g,' ').trim();
+  if(!t)return s.trim();
+  const out=t.charAt(0).toUpperCase()+t.slice(1);
+  return out.length>180?out.slice(0,180).replace(/\s+\S*$/,'')+'.':out;
+}
+
 /** Server-side enforcement: an unidentifiable bin can never earn points. */
 export function enforceBin(country:string,v:Verification):Verification{
-  if(!v.bin)return {...v,items:v.items.map(i=>({...i,outcome:i.outcome==='correct'?'uncertain':i.outcome}))};
+  if(!v.bin)return {...v,summary:tidySummary(v.summary),items:v.items.map(i=>({...i,outcome:i.outcome==='correct'?'uncertain':i.outcome}))};
   const r=resolveBin(country,v.bin);
-  if(r.ok)return {...v,binMeaning:r.meaning};
+  if(r.ok)return {...v,binMeaning:r.meaning,summary:tidySummary(v.summary)};
   return {...v,binMeaning:r.reason,summary:r.reason,items:v.items.map(i=>({...i,outcome:'uncertain' as const,guidance:r.reason}))};
 }
