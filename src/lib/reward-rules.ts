@@ -20,6 +20,16 @@ export function resolveBin(country:string,bin:z.infer<typeof binSchema>):{ok:tru
   return {ok:true,meaning:match.label};
 }
 
+const streamWord=(s:'recycling'|'trash'|'compost'|'glass'|'paper'|'packaging')=>s==='trash'?'general waste':s;
+
+/** The bin color in the country's guide that an item of this stream belongs in. Null when the country has no color guide or no bin covers the stream. */
+export function binColorFor(country:string,stream?:'recycling'|'trash'|'compost'|'glass'|'paper'|'packaging'):{color:string;label:string;stream:'recycling'|'trash'|'compost'|'glass'|'paper'|'packaging'}|null{
+  if(!stream||!hasColorGuide(country))return null;
+  const guide=binsFor(country);
+  const b=guide.find(x=>x.stream===stream)||(['glass','paper','packaging'].includes(stream)?guide.find(x=>x.stream==='recycling'):undefined);
+  return b?{color:b.color,label:b.label,stream:b.stream}:null;
+}
+
 /** Sentences that talk about the footage instead of the user, e.g. "This video shows ...". */
 const PREAMBLE=/^(?:this\s+(?:video|clip|footage|recording)\s+(?:shows|showed|contains|contained|depicts|features|captures|is\s+of|of)\s*[:;,]?\s*)+/i;
 
@@ -43,5 +53,11 @@ export function enforceBin(country:string,v:Verification):Verification{
       return item.outcome==='correct'&&itemPoints(item)===0?{...item,guidance:'Correct disposal, but no points: rewards are only for items recycled into the correct recycling bin.'}:item;
     })};
   }
-  return {...v,binMeaning:r.reason,summary:r.reason,items:v.items.map(i=>({...i,outcome:'uncertain' as const,guidance:r.reason}))};
+  const hints=v.items.map(i=>binColorFor(country,i.stream));
+  const unique=new Set(hints.filter(b=>b).map(b=>`${b!.color} ${streamWord(b!.stream)}`));
+  const summary=hints.some(b=>b)&&unique.size===1?`${r.reason} Use the ${[...unique][0]} bin instead.`:r.reason;
+  return {...v,binMeaning:summary,summary:tidySummary(summary),items:v.items.map((i,n)=>{
+    const b=hints[n];
+    return b?{...i,outcome:'uncertain' as const,guidance:`${r.reason} For ${i.object}, use the ${b.color} ${streamWord(b.stream)} bin.`}:{...i,outcome:'uncertain' as const,guidance:r.reason};
+  })};
 }
