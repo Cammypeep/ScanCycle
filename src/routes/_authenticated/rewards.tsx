@@ -117,7 +117,7 @@ function Rewards(){
           )}
           {result.points===0&&<BinCallout summary={result.result.summary} binMeaning={result.result.binMeaning??''}/>}
           {result.points>0&&<p className="mt-2">{result.result.summary}</p>}
-          {result.result.bin&&<p className="mt-3 text-sm text-muted-foreground">Bin seen: {result.result.bin.visible?result.result.bin.color:'not visible'}{result.result.binMeaning?' · '+result.result.binMeaning:''}</p>}
+          {result.points>0&&result.result.bin&&<p className="mt-3 text-sm text-muted-foreground">Bin seen: {result.result.bin.visible?result.result.bin.color:'not visible'}{result.result.binMeaning?' · '+result.result.binMeaning:''}</p>}
           <ul className="mt-4 divide-y divide-border">
             {result.result.items.map((i,n)=>(
               <li key={n} className="flex gap-3 py-4">
