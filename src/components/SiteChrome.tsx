@@ -56,7 +56,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-border">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-xs text-muted-foreground sm:flex-row sm:justify-between">
-        <Link to="/why-recycle" className="hover:text-foreground">Why recycling is important</Link>
+        <span className="flex flex-wrap gap-x-3"><Link to="/why-recycle" className="hover:text-foreground">Why recycling is important</Link><a href="https://www.epa.gov/recycle/recycling-basics-and-benefits" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">EPA: Recycling benefits ↗</a></span>
         <span>AI results are guidance only. Always check your local recycling rules.</span>
       </div>
     </footer>

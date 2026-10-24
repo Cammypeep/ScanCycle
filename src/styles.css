@@ -164,3 +164,28 @@
 }
 @keyframes scanline { 0%, 100% { top: 0%; } 50% { top: calc(100% - 4px); } }
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+:root {
+  --auth-1: oklch(0.72 0.19 155);
+  --auth-2: oklch(0.7 0.16 235);
+  --auth-3: oklch(0.86 0.17 90);
+  --auth-4: oklch(0.72 0.18 30);
+}
+@theme inline {
+  --color-auth-1: var(--auth-1);
+  --color-auth-2: var(--auth-2);
+  --color-auth-3: var(--auth-3);
+  --color-auth-4: var(--auth-4);
+}
+@utility auth-bg {
+  background: linear-gradient(135deg, color-mix(in oklab, var(--auth-1) 35%, var(--background)), color-mix(in oklab, var(--auth-2) 35%, var(--background)) 50%, color-mix(in oklab, var(--auth-4) 30%, var(--background)));
+}
+@utility auth-blob {
+  position: absolute;
+  height: 26rem;
+  width: 26rem;
+  border-radius: 9999px;
+  opacity: 0.55;
+  filter: blur(80px);
+  pointer-events: none;
+}
