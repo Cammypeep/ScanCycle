@@ -8,6 +8,13 @@
       "when": 1792870527015,
       "tag": "0000_accounts_rewards_friends",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792874510652,
+      "tag": "0001_friend_scores_full_name",
+      "breakpoints": true
     }
   ]
 }
