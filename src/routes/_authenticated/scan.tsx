@@ -114,7 +114,7 @@ function ScanPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <p className="font-mono text-xs uppercase tracking-widest text-primary">AI Scanner</p>
-      <h1 className="mt-1 text-3xl font-bold sm:text-4xl">What are you recycling?</h1>
+      <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Which Bin Should This Go?</h1>
       <p className="mt-2 text-muted-foreground">Upload a clear photo of a single object for the best results.</p>
 
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ""; }} />
