@@ -115,7 +115,7 @@ function Rewards(){
           ):(
             <p className="font-mono text-sm font-semibold uppercase tracking-widest text-muted-foreground">0 points earned</p>
           )}
-          {result.points===0&&<BinCallout summary={result.result.summary} binMeaning={result.result.binMeaning}/>}
+          {result.points===0&&<BinCallout summary={result.result.summary} binMeaning={result.result.binMeaning??''}/>}
           {result.points>0&&<p className="mt-2">{result.result.summary}</p>}
           {result.result.bin&&<p className="mt-3 text-sm text-muted-foreground">Bin seen: {result.result.bin.visible?result.result.bin.color:'not visible'}{result.result.binMeaning?' · '+result.result.binMeaning:''}</p>}
           <ul className="mt-4 divide-y divide-border">
