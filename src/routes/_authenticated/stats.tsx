@@ -3,6 +3,7 @@ import {useQuery} from '@tanstack/react-query';
 import {useState} from 'react';
 import {Bar,BarChart,CartesianGrid,XAxis,YAxis,Tooltip,ResponsiveContainer,Legend} from 'recharts';
 import {itemImpact,formatCo2,kmEquivalent,REMADE_LABEL,type RemadeKind} from '@/lib/impact';
+import {RATES,ratesFor} from '@/lib/recycling-rates';
 import {Leaf,Recycle} from 'lucide-react';
 import {supabase} from '@/integrations/supabase/client';
 import {Button} from '@/components/ui/button';
@@ -20,11 +21,11 @@ const inRange=(range:Range,iso:string)=>{const d=new Date(iso),n=new Date();if(r
 type Bucket={label:string;key:string;co2:number}&Record<Material,number>;
 const empty=()=>Object.fromEntries(MATERIALS.map(m=>[m,0])) as Record<Material,number>;
 const emptyB=()=>({...empty(),co2:0});
-function impactOf(r:Row){const p=verificationSchema.safeParse(r.result);return p.success?p.data.items.map(itemImpact):[];}
+function impactOf(r:Row,country?:string|null){const p=verificationSchema.safeParse(r.result);return p.success?p.data.items.map(i=>itemImpact(i,country)):[];}
 
 function itemsOf(r:Row){const p=verificationSchema.safeParse(r.result);return p.success?p.data.items.filter(i=>itemPoints(i)>0).flatMap(i=>Array(i.quantity??1).fill(materialOf(i)) as Material[]):[];}
 
-function buckets(range:Range,rows:Row[]){
+function buckets(range:Range,rows:Row[],country?:string|null){
   const now=new Date();const out:Bucket[]=[];let keyOf:(d:Date)=>string;
   if(range==='week'||range==='month'){
     const n=range==='week'?7:30;keyOf=day;
@@ -35,7 +36,7 @@ function buckets(range:Range,rows:Row[]){
     keyOf=d=>d.getFullYear()+'-'+d.getMonth();
     for(let i=months-1;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);out.push({key:keyOf(d),label:d.toLocaleDateString(undefined,{month:'short',year:months>12?'2-digit':undefined}),...emptyB()});}
   }
-  rows.forEach(r=>{const b=out.find(o=>o.key===keyOf(new Date(r.created_at)));if(b){itemsOf(r).forEach(m=>{b[m]+=1;});impactOf(r).forEach(i=>{b.co2+=i.co2Grams;});}});
+  rows.forEach(r=>{const b=out.find(o=>o.key===keyOf(new Date(r.created_at)));if(b){itemsOf(r).forEach(m=>{b[m]+=1;});impactOf(r,country).forEach(i=>{b.co2+=i.co2Grams;});}});
   return out;
 }
 
@@ -44,13 +45,13 @@ function Stats(){
   const [range,setRange]=useState<Range>('week');
   const [mat,setMat]=useState<Material|'all'>('all');
   const q=useQuery({queryKey:['my-submissions',profile?.id],enabled:!!profile,queryFn:async()=>{const {data,error}=await supabase.from('video_submissions').select('created_at,result,points_awarded').eq('user_id',profile!.id).order('created_at',{ascending:false});if(error)throw error;return data;}});
-  const data=buckets(range,q.data??[]);
+  const data=buckets(range,q.data??[],profile?.country);
   const totals=empty();data.forEach(b=>MATERIALS.forEach(m=>{totals[m]+=b[m];}));
   const shown=mat==='all'?MATERIALS.filter(m=>totals[m]>0):[mat];
   const points=Math.round((q.data??[]).filter(r=>inRange(range,r.created_at)).reduce((s,r)=>s+Number(r.points_awarded??0),0)*10)/10;
   const co2=data.reduce((s,b)=>s+b.co2,0);
   const remade:Partial<Record<RemadeKind,number>>={};
-  (q.data??[]).filter(r=>inRange(range,r.created_at)).forEach(r=>impactOf(r).forEach(i=>{if(i.remade)remade[i.remade.kind]=(remade[i.remade.kind]??0)+i.remade.count;}));
+  (q.data??[]).filter(r=>inRange(range,r.created_at)).forEach(r=>impactOf(r,profile?.country).forEach(i=>{if(i.remade)remade[i.remade.kind]=(remade[i.remade.kind]??0)+i.remade.count;}));
   const total=mat==='all'?MATERIALS.reduce((s,m)=>s+totals[m],0):totals[mat];
   return (
     <section className="mx-auto max-w-3xl px-4 py-10">
@@ -88,7 +89,7 @@ function Stats(){
         </div>
         <div className="rounded-xl border border-border bg-card p-5">
           <p className="flex items-center gap-2 text-sm text-muted-foreground"><Recycle className="h-4 w-4 text-primary"/>Remade because of you</p>
-          {Object.keys(remade).length?<ul className="mt-2 space-y-1">{(Object.entries(remade) as [RemadeKind,number][]).map(([k,n])=><li key={k}><span className="text-xl font-bold text-foreground">{n}</span> <span className="text-muted-foreground">{REMADE_LABEL[k]}</span></li>)}</ul>:<p className="mt-2 text-muted-foreground">Recycle items to see what they become.</p>}
+          {Object.keys(remade).length?<ul className="mt-2 space-y-1">{(Object.entries(remade) as [RemadeKind,number][]).map(([k,n])=><li key={k}><span className="text-xl font-bold text-foreground">{n.toFixed(1)}</span> <span className="text-muted-foreground">{REMADE_LABEL[k]}</span></li>)}</ul>:<p className="mt-2 text-muted-foreground">Recycle items to see what they become.</p>}
         </div>
       </div>
       <div className="mt-4 h-56 rounded-xl border border-border bg-card p-4">
@@ -102,7 +103,8 @@ function Stats(){
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Impact numbers are typical estimates per item, not exact measurements.</p>
+      <p className="mt-3 text-sm text-muted-foreground">Based on real recycling rates in {profile?.country&&RATES[profile.country]?profile.country:'your region (typical estimate)'}: {(['plastic','paper','metal','glass','cardboard'] as const).map(m=>`${m} ${Math.round(ratesFor(profile?.country)[m]*100)}%`).join(', ')}. Only that share of what you recycle actually gets remade.</p>
+      <p className="mt-1 text-xs text-muted-foreground">Impact numbers are typical estimates per item, not exact measurements.</p>
       <p className="mt-3 text-xs text-muted-foreground">Counts items you recycled correctly in verified videos. Older videos have their material guessed from the item name.</p>
     </section>
   );
