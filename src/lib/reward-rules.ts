@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import { binsFor, hasColorGuide } from './bin-guides';
-export const itemSchema=z.object({object:z.string().max(150),outcome:z.enum(['correct','incorrect','uncertain']),guidance:z.string().max(500)});
+export const itemSchema=z.object({object:z.string().max(150),outcome:z.enum(['correct','incorrect','uncertain']),stream:z.enum(['recycling','trash','compost','glass','paper','packaging']).optional(),guidance:z.string().max(500)});
 export const binSchema=z.object({color:z.string().max(40),labelText:z.string().max(100),visible:z.boolean()});
 export const verificationSchema=z.object({items:z.array(itemSchema).max(100),summary:z.string().max(1000),bin:binSchema.optional(),binMeaning:z.string().max(300).optional()});
 export type Verification=z.infer<typeof verificationSchema>;
-export function calculatePoints(items:Verification['items']){return items.filter(i=>i.outcome==='correct').length*10;}
+export function itemPoints(item:Verification['items'][number]){return item.outcome==='correct'&&['recycling','glass','paper','packaging'].includes(item.stream??'')?10:0;}
+export function calculatePoints(items:Verification['items']){return items.reduce((total,item)=>total+itemPoints(item),0);}
 
 const norm=(c:string)=>c.trim().toLowerCase().replace('gray','grey');
 
@@ -34,6 +35,13 @@ export function tidySummary(s:string):string{
 export function enforceBin(country:string,v:Verification):Verification{
   if(!v.bin)return {...v,summary:tidySummary(v.summary),items:v.items.map(i=>({...i,outcome:i.outcome==='correct'?'uncertain':i.outcome}))};
   const r=resolveBin(country,v.bin);
-  if(r.ok)return {...v,binMeaning:r.meaning,summary:tidySummary(v.summary)};
+  if(r.ok){
+    const label=v.bin.labelText.trim();
+    const trashBin=label?/\b(trash|garbage|landfill|general waste|other waste|residual waste|rubbish)\b/i.test(label):binsFor(country).find(b=>norm(b.color)===norm(v.bin?.color??'')||b.label.toLowerCase().includes(norm(v.bin?.color??'')))?.stream==='trash';
+    return {...v,binMeaning:r.meaning,summary:tidySummary(v.summary),items:v.items.map(i=>{
+      const item=trashBin?{...i,stream:'trash' as const}:i;
+      return item.outcome==='correct'&&itemPoints(item)===0?{...item,guidance:'Correct disposal, but no points: rewards are only for items recycled into the correct recycling bin.'}:item;
+    })};
+  }
   return {...v,binMeaning:r.reason,summary:r.reason,items:v.items.map(i=>({...i,outcome:'uncertain' as const,guidance:r.reason}))};
 }
