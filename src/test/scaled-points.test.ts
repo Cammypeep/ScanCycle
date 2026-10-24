@@ -10,6 +10,6 @@ describe('Scaled points',()=>{
 });
 describe('Cooldown',()=>{
   const t=Date.parse('2026-10-24T12:00:00Z');
-  it('blocks at 9 minutes',()=>{expect(cooldownRemaining('2026-10-24T12:00:00Z',t+9*60000)).toBe(60000);});
-  it('allows at 10 minutes',()=>{expect(cooldownRemaining('2026-10-24T12:00:00Z',t+10*60000)).toBe(0);});
+  it('blocks at 9 minutes',()=>{expect(cooldownRemaining('2026-10-24T12:00:00Z',t+9*60000,true)).toBe(60000);});
+  it('allows at 10 minutes',()=>{expect(cooldownRemaining('2026-10-24T12:00:00Z',t+10*60000,true)).toBe(0);});
 });
