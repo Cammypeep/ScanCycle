@@ -1,6 +1,7 @@
 import type { ScanRecord } from "./scan-types";
 
-const KEY = "scrapsense.history.v1";
+let KEY = "scrapsense.history.signed-out";
+export function setHistoryOwner(id: string | null) { KEY = `scrapsense.history.v2.${id ?? "signed-out"}`; }
 const MAX = 20;
 
 export function loadHistory(): ScanRecord[] {
@@ -51,6 +52,8 @@ export async function toJpegDataUrl(src: string, maxDim: number, quality = 0.85)
   const c = document.createElement("canvas");
   c.width = Math.round(img.width * scale);
   c.height = Math.round(img.height * scale);
-  c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+  const ctx = c.getContext("2d");
+  if (!ctx) throw new Error("Image processing unavailable.");
+  ctx.drawImage(img, 0, 0, c.width, c.height);
   return c.toDataURL("image/jpeg", quality);
 }

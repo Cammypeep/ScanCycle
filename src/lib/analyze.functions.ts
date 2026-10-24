@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { BIN_COLORS, MATERIALS, RECYCLABILITY, type Analysis } from "./scan-types";
 
 const MAX_DATA_URL_CHARS = 8_000_000; // ~6MB image
@@ -42,7 +43,7 @@ Rules:
 - Base everything on what is visible. Never invent numeric confidence scores or percentages.
 - A photo cannot determine exact metal alloy or guarantee recyclability; say so when relevant.
 - If the material is ambiguous (e.g. steel vs aluminum, coated paper, plastic type), set needsVerification true, use "uncertain" or "mixed_unknown" where appropriate, and explain in uncertaintyNotes how to verify (magnet test, resin code, etc.).
-- binColor/binName: the most common bin for this item (typical North American scheme: blue = mixed recycling, green = glass or organics, gray/black = trash, special_dropoff for batteries/e-waste/hazardous). binName is a short label like "Blue recycling bin".
+- binColor/binName: use the provided country and city, never default to North America. Local labels override colors. If location is insufficient to determine a color, set needsVerification true, use special_dropoff as a neutral marker and binName "Check your local recycling bin label"; explain uncertainty.
 - preparationSteps: 2-4 short, practical steps (empty, rinse, remove caps/labels, separate parts...).
 - environmentalInfo: 2-3 sentences on why recycling this material matters; only well-established facts.
 - safetyWarnings: include warnings for batteries, electronics, sharp edges, aerosols, chemicals, broken glass. Empty array if none.
@@ -54,6 +55,7 @@ export type AnalyzeResult =
   | { ok: false; error: string; retryable: boolean };
 
 export const analyzeImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: { image: string }) => {
     if (!input || typeof input.image !== "string") throw new Error("Missing image");
     const m = /^data:([a-z/+-]+);base64,/.exec(input.image);
@@ -61,7 +63,9 @@ export const analyzeImage = createServerFn({ method: "POST" })
     if (input.image.length > MAX_DATA_URL_CHARS) throw new Error("Image is too large.");
     return { image: input.image };
   })
-  .handler(async ({ data }): Promise<AnalyzeResult> => {
+  .handler(async ({ data, context }): Promise<AnalyzeResult> => {
+    const { data: profile, error: profileError } = await context.supabase.from("profiles").select("country,locality").eq("id", context.userId).single();
+    if (profileError || !profile?.country) return { ok: false, error: "Complete your country profile first.", retryable: false };
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) return { ok: false, error: "AI service is not configured.", retryable: false };
 
@@ -76,7 +80,7 @@ export const analyzeImage = createServerFn({ method: "POST" })
         },
         body: JSON.stringify({
           model: "openai/gpt-6-astra",
-          instructions: INSTRUCTIONS,
+          instructions: INSTRUCTIONS + `\nUser location: ${profile.country}, ${profile.locality || "city not provided"}.`,
           input: [
             {
               role: "user",

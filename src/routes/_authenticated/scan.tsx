@@ -13,9 +13,11 @@ import sampleCan from "@/assets/sample-can.jpg";
 import sampleSteel from "@/assets/sample-steel.jpg";
 import sampleBottle from "@/assets/sample-bottle.jpg";
 
-export const Route = createFileRoute("/scan")({
+export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "AI Scanner — ScrapSense" },
       { name: "description", content: "Upload or snap a photo and let AI identify the material and how to recycle it." },
       { property: "og:title", content: "AI Scanner — ScrapSense" },
