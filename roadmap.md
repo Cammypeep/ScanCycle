@@ -1,6 +1,7 @@
 # Account and recycling rewards
-- [ ] Account-first access and required profiles
-- [ ] Country-aware photo guidance
-- [ ] Private video verification and 10 points per correct item
-- [ ] Username friends and scores
-- [ ] Tests and end-to-end checks
+- [x] Account-first access and required profiles
+- [x] Country-aware photo guidance
+- [x] Private video verification and 10 points per correct item
+- [x] Username friends and scores
+- [x] Points tests; signed-in scanner, friend acceptance, video rejection, saved-result readback and sign-out checks
+- [ ] Validate correct and incorrect real disposal footage — waiting for real recycling videos; per-item arithmetic tests pass
