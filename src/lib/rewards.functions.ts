@@ -3,13 +3,14 @@ import {requireSupabaseAuth} from '@/integrations/supabase/auth-middleware';
 import {z} from 'zod';
 import {calculatePoints,verificationSchema,enforceBin} from './reward-rules';
 import {binsFor} from './bin-guides';
+import {videoSubmissionKey} from './video-submission-key';
 export const verifyVideo=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator((v:unknown)=>z.object({path:z.string().max(200).regex(/^[a-z0-9-]+\/[a-z0-9-]+\.(mp4|webm|mov)$/)}).parse(v)).handler(async({data,context})=>{
  if(!data.path.startsWith(context.userId+'/'))throw new Error('This video does not belong to your account.');
  const {data:profile,error:pe}=await context.supabase.from('profiles').select('country,locality').eq('id',context.userId).single();if(pe||!profile?.country)throw new Error('Complete your country profile first.');
  const bins=binsFor(profile.country);
  const {data:file,error:fe}=await context.supabase.storage.from('recycling-videos').download(data.path);if(fe||!file)throw new Error('Could not read your video.');
  if(file.size===0||file.size>50*1024*1024)throw new Error('Use a video smaller than 50 MB.');
- const bytes=await file.arrayBuffer();const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(b=>b.toString(16).padStart(2,'0')).join('');
+ const bytes=await file.arrayBuffer();const hash=await videoSubmissionKey(bytes);
  // Only the authenticated owner's verified video can enter this privileged award path.
  const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
  const {data:existing}=await supabaseAdmin.from('video_submissions').select('id,status,user_id').eq('video_hash',hash).maybeSingle();if(existing)throw new Error('This video has already been submitted. Upload a new recycling action.');
