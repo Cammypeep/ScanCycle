@@ -52,12 +52,12 @@ export const analyzeImage = createServerFn({ method: "POST" })
   .inputValidator((input: { image: string }) => {
     if (!input || typeof input.image !== "string") throw new Error("Missing image");
     const m = /^data:([a-z/+-]+);base64,/.exec(input.image);
-    if (!m || !ALLOWED.includes(m[1])) throw new Error("Unsupported file type. Use JPG, PNG or WEBP.");
+    if (!m || !ALLOWED.includes(m[1] ?? "")) throw new Error("Unsupported file type. Use JPG, PNG or WEBP.");
     if (input.image.length > MAX_DATA_URL_CHARS) throw new Error("Image is too large.");
     return { image: input.image };
   })
   .handler(async ({ data }): Promise<AnalyzeResult> => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) return { ok: false, error: "AI service is not configured.", retryable: false };
 
     let res: Response;
