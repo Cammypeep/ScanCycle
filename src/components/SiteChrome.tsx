@@ -5,7 +5,7 @@ import { profileQuery } from "@/lib/account";
 import { supabase } from "@/integrations/supabase/client";
 import { setHistoryOwner } from "@/lib/history";
 import { Button } from "@/components/ui/button";
-import { Recycle, ScanLine, History, Trophy, Users, LogOut } from "lucide-react";
+import { Recycle, ScanLine, History, Trophy, Users, Settings, LogOut } from "lucide-react";
 
 export function Logo() {
   return (

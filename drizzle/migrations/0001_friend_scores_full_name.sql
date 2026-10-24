@@ -1,0 +1,4 @@
+DROP FUNCTION public.friend_scores();
+CREATE FUNCTION public.friend_scores() RETURNS TABLE(id uuid, username text, full_name text, points bigint, status text, incoming boolean) LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT p.id,p.username,p.full_name,coalesce((SELECT sum(v.points) FROM public.video_submissions v WHERE v.user_id=p.id AND v.status='complete'),0),f.status,f.recipient=auth.uid() FROM public.friendships f JOIN public.profiles p ON p.id=CASE WHEN f.requester=auth.uid() THEN f.recipient ELSE f.requester END WHERE auth.uid() IN (f.requester,f.recipient); $$;
+REVOKE ALL ON FUNCTION public.friend_scores() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.friend_scores() TO authenticated;

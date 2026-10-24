@@ -127,6 +127,7 @@ export type Database = {
       friend_scores: {
         Args: never
         Returns: {
+          full_name: string
           id: string
           incoming: boolean
           points: number
