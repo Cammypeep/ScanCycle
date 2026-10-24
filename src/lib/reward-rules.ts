@@ -47,7 +47,9 @@ export function calculatePoints(items:Item[]){return Math.min(MAX_SUBMISSION_POI
 export function recycledUnits(items:Item[]){return items.filter(eligible).reduce((s,i)=>s+(i.quantity??1),0);}
 export const COOLDOWN_MS=10*60*1000;
 /** Milliseconds left before the next submission is allowed. */
-export function cooldownRemaining(lastSubmittedAt:string|null|undefined,now=Date.now()){if(!lastSubmittedAt)return 0;return Math.max(0,new Date(lastSubmittedAt).getTime()+COOLDOWN_MS-now);}
+// Temporary testing switch: set to true to restore the 10-minute cooldown.
+export const COOLDOWN_ENABLED=false;
+export function cooldownRemaining(lastSubmittedAt:string|null|undefined,now=Date.now(),enabled=COOLDOWN_ENABLED){if(!enabled||!lastSubmittedAt)return 0;return Math.max(0,new Date(lastSubmittedAt).getTime()+COOLDOWN_MS-now);}
 export const formatPoints=(n:number)=>Number.isInteger(n)?String(n):n.toFixed(1);
 
 const norm=(c:string)=>c.trim().toLowerCase().replace('gray','grey');

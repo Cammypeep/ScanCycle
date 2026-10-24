@@ -118,7 +118,7 @@ function Rewards(){
             setFiles(next);setResult(null);setMessage('');
           }}/>
         <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-          <li>Recycle in bulk: you can send up to 5 videos together, once every 10 minutes.</li>
+          <li>Recycle in bulk: you can send up to 5 videos together.</li>
           <li>Show the whole bin (its color or label) and the items clearly before you drop them.</li>
           <li>Correct trash disposal earns 0 points; only correct recycling earns points.</li>
         </ul>
