@@ -41,6 +41,7 @@ export function SiteHeader() {
           </Link>
           <Link to="/rewards" className={linkCls} aria-label="Rewards"><Trophy className="h-4 w-4"/><span className="hidden sm:inline">Rewards</span></Link>
           <Link to="/friends" className={linkCls} aria-label="Friends"><Users className="h-4 w-4"/><span className="hidden sm:inline">Friends</span></Link>
+          <Link to="/settings" className={linkCls} aria-label="Settings"><Settings className="h-4 w-4"/><span className="hidden sm:inline">Settings</span></Link>
           <Button variant="ghost" size="icon" aria-label="Sign out" onClick={async()=>{await qc.cancelQueries();qc.clear();setHistoryOwner(null);await supabase.auth.signOut();navigate({to:"/auth",replace:true});}}><LogOut className="h-4 w-4"/></Button>
           </> : <Link to="/auth" className={linkCls}>Sign in</Link>}
         </nav>
