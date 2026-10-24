@@ -7,3 +7,11 @@ it('grey bin in Australia earns 0',()=>{const v=enforceBin('Australia',{items:it
 it('grey bin in US with wrapper earns 10',()=>{expect(calculatePoints(enforceBin('United States',{items:item,summary:'',bin:{color:'gray',labelText:'',visible:true}}).items)).toBe(10);});
 it('label overrides color',()=>{expect(calculatePoints(enforceBin('Australia',{items:item,summary:'',bin:{color:'grey',labelText:'General waste',visible:true}}).items)).toBe(10);});
 it('invisible bin earns 0',()=>{expect(calculatePoints(enforceBin('United States',{items:item,summary:'',bin:{color:'',labelText:'',visible:false}}).items)).toBe(0);});});
+
+import {tidySummary} from '@/lib/reward-rules';
+describe('Result sentence',()=>{
+it('drops a "this video shows" preamble',()=>{expect(tidySummary('This video shows a snack wrapper being disposed into the grey trash bin.')).toBe('A snack wrapper being disposed into the grey trash bin.');});
+it('leaves a short sentence about the user untouched',()=>{expect(tidySummary('You correctly disposed a non-recyclable snack wrapper into the grey other waste bin.')).toBe('You correctly disposed a non-recyclable snack wrapper into the grey other waste bin.');});
+it('trims an overlong sentence',()=>{expect(tidySummary('x'.repeat(200))).toHaveLength(180);});
+it('the saved result never opens with the footage preamble',()=>{const v=enforceBin('United States',{items:[{object:'snack wrapper',outcome:'correct' as const,guidance:''}],summary:'This video shows a wrapper going into the grey trash bin.',bin:{color:'gray',labelText:'',visible:true}});expect(v.summary).toBe('A wrapper going into the grey trash bin.');expect(calculatePoints(v.items)).toBe(10);});
+});
