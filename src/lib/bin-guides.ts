@@ -53,3 +53,7 @@ const GENERIC: Bin[] = [
 export function binsFor(country?: string | null): Bin[] {
   return (country && GUIDES[country]) || GENERIC;
 }
+
+export function hasColorGuide(country?: string | null): boolean {
+  return !!(country && GUIDES[country]);
+}
