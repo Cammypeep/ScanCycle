@@ -6,9 +6,11 @@ import { ResultView } from "@/components/ResultView";
 import { getScan } from "@/lib/history";
 import type { ScanRecord } from "@/lib/scan-types";
 
-export const Route = createFileRoute("/result/$id")({
+export const Route = createFileRoute("/_authenticated/result/$id")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Saved Scan — ScrapSense" },
       { name: "description", content: "A saved ScrapSense material analysis." },
       { property: "og:title", content: "Saved Scan — ScrapSense" },

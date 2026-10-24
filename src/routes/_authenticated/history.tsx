@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { clearHistory, loadHistory, removeScan } from "@/lib/history";
 import { MATERIAL_LABEL, RECYCLABILITY_LABEL, type ScanRecord } from "@/lib/scan-types";
 
-export const Route = createFileRoute("/history")({
+export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Scan History — ScrapSense" },
       { name: "description", content: "Your recent ScrapSense material scans, saved on this device." },
       { property: "og:title", content: "Scan History — ScrapSense" },

@@ -10,24 +10,33 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as HistoryRouteImport } from './routes/history'
-import { Route as ScanRouteImport } from './routes/scan'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as WhyRecycleRouteImport } from './routes/why-recycle'
-import { Route as ResultIdRouteImport } from './routes/result.$id'
+import { Route as AuthenticatedFriendsRouteImport } from './routes/_authenticated/friends'
+import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
+import { Route as AuthenticatedRewardsRouteImport } from './routes/_authenticated/rewards'
+import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
+import { Route as AuthenticatedResultIdRouteImport } from './routes/_authenticated/result.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HistoryRoute = HistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ScanRoute = ScanRouteImport.update({
-  id: '/scan',
-  path: '/scan',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WhyRecycleRoute = WhyRecycleRouteImport.update({
@@ -35,48 +44,110 @@ const WhyRecycleRoute = WhyRecycleRouteImport.update({
   path: '/why-recycle',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResultIdRoute = ResultIdRouteImport.update({
+const AuthenticatedFriendsRoute = AuthenticatedFriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRewardsRoute = AuthenticatedRewardsRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedScanRoute = AuthenticatedScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedResultIdRoute = AuthenticatedResultIdRouteImport.update({
   id: '/result/$id',
   path: '/result/$id',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/history': typeof HistoryRoute
-  '/scan': typeof ScanRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/why-recycle': typeof WhyRecycleRoute
-  '/result/$id': typeof ResultIdRoute
+  '/friends': typeof AuthenticatedFriendsRoute
+  '/history': typeof AuthenticatedHistoryRoute
+  '/rewards': typeof AuthenticatedRewardsRoute
+  '/scan': typeof AuthenticatedScanRoute
+  '/result/$id': typeof AuthenticatedResultIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/history': typeof HistoryRoute
-  '/scan': typeof ScanRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/why-recycle': typeof WhyRecycleRoute
-  '/result/$id': typeof ResultIdRoute
+  '/friends': typeof AuthenticatedFriendsRoute
+  '/history': typeof AuthenticatedHistoryRoute
+  '/rewards': typeof AuthenticatedRewardsRoute
+  '/scan': typeof AuthenticatedScanRoute
+  '/result/$id': typeof AuthenticatedResultIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/history': typeof HistoryRoute
-  '/scan': typeof ScanRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/why-recycle': typeof WhyRecycleRoute
-  '/result/$id': typeof ResultIdRoute
+  '/_authenticated/friends': typeof AuthenticatedFriendsRoute
+  '/_authenticated/history': typeof AuthenticatedHistoryRoute
+  '/_authenticated/rewards': typeof AuthenticatedRewardsRoute
+  '/_authenticated/scan': typeof AuthenticatedScanRoute
+  '/_authenticated/result/$id': typeof AuthenticatedResultIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/history' | '/scan' | '/why-recycle' | '/result/$id'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/why-recycle'
+    | '/friends'
+    | '/history'
+    | '/rewards'
+    | '/scan'
+    | '/result/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/history' | '/scan' | '/why-recycle' | '/result/$id'
-  id: '__root__' | '/' | '/history' | '/scan' | '/why-recycle' | '/result/$id'
+  to:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/why-recycle'
+    | '/friends'
+    | '/history'
+    | '/rewards'
+    | '/scan'
+    | '/result/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/reset-password'
+    | '/why-recycle'
+    | '/_authenticated/friends'
+    | '/_authenticated/history'
+    | '/_authenticated/rewards'
+    | '/_authenticated/scan'
+    | '/_authenticated/result/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  HistoryRoute: typeof HistoryRoute
-  ScanRoute: typeof ScanRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   WhyRecycleRoute: typeof WhyRecycleRoute
-  ResultIdRoute: typeof ResultIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -88,18 +159,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/history': {
-      id: '/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof HistoryRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/scan': {
-      id: '/scan'
-      path: '/scan'
-      fullPath: '/scan'
-      preLoaderRoute: typeof ScanRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/why-recycle': {
@@ -109,22 +187,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WhyRecycleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/result/$id': {
-      id: '/result/$id'
+    '/_authenticated/friends': {
+      id: '/_authenticated/friends'
+      path: '/friends'
+      fullPath: '/friends'
+      preLoaderRoute: typeof AuthenticatedFriendsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/history': {
+      id: '/_authenticated/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof AuthenticatedHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/rewards': {
+      id: '/_authenticated/rewards'
+      path: '/rewards'
+      fullPath: '/rewards'
+      preLoaderRoute: typeof AuthenticatedRewardsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/scan': {
+      id: '/_authenticated/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof AuthenticatedScanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/result/$id': {
+      id: '/_authenticated/result/$id'
       path: '/result/$id'
       fullPath: '/result/$id'
-      preLoaderRoute: typeof ResultIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedResultIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedFriendsRoute: typeof AuthenticatedFriendsRoute
+  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
+  AuthenticatedRewardsRoute: typeof AuthenticatedRewardsRoute
+  AuthenticatedScanRoute: typeof AuthenticatedScanRoute
+  AuthenticatedResultIdRoute: typeof AuthenticatedResultIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedFriendsRoute: AuthenticatedFriendsRoute,
+  AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
+  AuthenticatedRewardsRoute: AuthenticatedRewardsRoute,
+  AuthenticatedScanRoute: AuthenticatedScanRoute,
+  AuthenticatedResultIdRoute: AuthenticatedResultIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  HistoryRoute: HistoryRoute,
-  ScanRoute: ScanRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   WhyRecycleRoute: WhyRecycleRoute,
-  ResultIdRoute: ResultIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
