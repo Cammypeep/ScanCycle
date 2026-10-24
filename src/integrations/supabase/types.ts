@@ -139,7 +139,7 @@ export type Database = {
         }[]
       }
       leaderboard: {
-        Args: { _country?: string }
+        Args: { _country?: string; _since?: string }
         Returns: {
           country: string
           full_name: string

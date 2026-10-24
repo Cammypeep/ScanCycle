@@ -7,13 +7,18 @@ import {Button} from '@/components/ui/button';
 import {profileQuery} from '@/lib/account';
 import {formatPoints} from '@/lib/reward-rules';
 
+function startOfWeek(){const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7));d.setHours(0,0,0,0);return d.toISOString();}
+function startOfMonth(){const d=new Date();d.setDate(1);d.setHours(0,0,0,0);return d.toISOString();}
+
 export const Route=createFileRoute('/_authenticated/leaderboard')({head:()=>({meta:[{title:'Leaderboard — ScrapSense'},{name:'description',content:'See the top recyclers in your country and worldwide.'},{property:'og:title',content:'Leaderboard — ScrapSense'},{property:'og:description',content:'Top recyclers by country and worldwide.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Leaderboard});
 
 function Leaderboard(){
   const {data:profile}=useQuery(profileQuery);
   const [scope,setScope]=useState<'country'|'world'>('country');
+  const [period,setPeriod]=useState<'week'|'month'>('week');
   const country=scope==='country'?profile?.country:undefined;
-  const board=useQuery({queryKey:['leaderboard',scope,country],enabled:!!profile,queryFn:async()=>{const {data,error}=await supabase.rpc('leaderboard',country?{_country:country}:{});if(error)throw error;return data;},refetchInterval:30000});
+  const since=period==='week'?startOfWeek():startOfMonth();
+  const board=useQuery({queryKey:['leaderboard',scope,country,period],enabled:!!profile,queryFn:async()=>{const {data,error}=await supabase.rpc('leaderboard',{...(country?{_country:country}:{}),_since:since});if(error)throw error;return data;},refetchInterval:30000});
   return (
     <section className="mx-auto max-w-3xl px-4 py-10">
       <p className="font-mono text-xs uppercase text-primary">Top recyclers</p>
@@ -21,6 +26,10 @@ function Leaderboard(){
       <div className="mt-6 flex flex-wrap gap-2">
         <Button variant={scope==='country'?'default':'outline'} onClick={()=>setScope('country')}><MapPin/>{profile?.country||'My country'}</Button>
         <Button variant={scope==='world'?'default':'outline'} onClick={()=>setScope('world')}><Globe/>Worldwide</Button>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <Button variant={period==='week'?'default':'outline'} onClick={()=>setPeriod('week')}>This week</Button>
+        <Button variant={period==='month'?'default':'outline'} onClick={()=>setPeriod('month')}>This month</Button>
       </div>
       {board.error&&<p className="mt-4 text-warning">Could not load the leaderboard.</p>}
       <ol className="mt-6 divide-y divide-border">
