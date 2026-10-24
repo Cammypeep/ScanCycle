@@ -80,6 +80,7 @@ export type Database = {
           created_at: string
           id: string
           points: number | null
+          points_awarded: number
           result: Json | null
           status: string
           storage_path: string
@@ -91,6 +92,7 @@ export type Database = {
           created_at?: string
           id?: string
           points?: number | null
+          points_awarded?: number
           result?: Json | null
           status?: string
           storage_path: string
@@ -102,6 +104,7 @@ export type Database = {
           created_at?: string
           id?: string
           points?: number | null
+          points_awarded?: number
           result?: Json | null
           status?: string
           storage_path?: string
