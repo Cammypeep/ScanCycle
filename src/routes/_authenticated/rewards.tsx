@@ -21,7 +21,7 @@ function BinCallout({summary,binMeaning}:{summary:string;binMeaning?:string}){
   const m=USE_BIN.exec(summary);
   const guidance=m?m[0].charAt(0).toUpperCase()+m[0].slice(1):null;
   const reason=guidance?summary.slice(0,m!.index).trim():summary;
-  const color=m?swatchFor(m[1]):undefined;
+  const color=m?swatchFor(m[1]??''):undefined;
   const text=guidance??(binMeaning||summary);
   return (
     <div className="mt-4 rounded-2xl border-2 border-warning bg-warning/10 p-5 shadow-glow">
