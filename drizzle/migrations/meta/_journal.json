@@ -15,6 +15,13 @@
       "when": 1792874510652,
       "tag": "0001_friend_scores_full_name",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792880306093,
+      "tag": "0002_leaderboard",
+      "breakpoints": true
     }
   ]
 }
