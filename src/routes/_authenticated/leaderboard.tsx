@@ -31,7 +31,7 @@ function Leaderboard(){
               <h2 className="truncate font-semibold">{r.full_name||r.username}{r.id===profile?.id&&' (you)'}</h2>
               <p className="text-xs text-muted-foreground">@{r.username}{scope==='world'&&r.country?' · '+r.country:''}</p>
             </div>
-            <span className="flex items-center gap-2 text-warning"><Trophy className="h-4 w-4"/>{r.points}</span>
+            <span className="flex items-center gap-2 text-warning"><Trophy className="h-4 w-4"/>{formatPoints(Number(r.points))}</span>
           </li>
         ))}
       </ol>
