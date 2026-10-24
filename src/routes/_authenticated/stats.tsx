@@ -25,7 +25,7 @@ function impactOf(r:Row,country?:string|null){const p=verificationSchema.safePar
 
 function itemsOf(r:Row){const p=verificationSchema.safeParse(r.result);return p.success?p.data.items.filter(i=>itemPoints(i)>0).flatMap(i=>Array(i.quantity??1).fill(materialOf(i)) as Material[]):[];}
 
-function buckets(range:Range,rows:Row[]){
+function buckets(range:Range,rows:Row[],country?:string|null){
   const now=new Date();const out:Bucket[]=[];let keyOf:(d:Date)=>string;
   if(range==='week'||range==='month'){
     const n=range==='week'?7:30;keyOf=day;
@@ -45,7 +45,7 @@ function Stats(){
   const [range,setRange]=useState<Range>('week');
   const [mat,setMat]=useState<Material|'all'>('all');
   const q=useQuery({queryKey:['my-submissions',profile?.id],enabled:!!profile,queryFn:async()=>{const {data,error}=await supabase.from('video_submissions').select('created_at,result,points_awarded').eq('user_id',profile!.id).order('created_at',{ascending:false});if(error)throw error;return data;}});
-  const data=buckets(range,q.data??[]);
+  const data=buckets(range,q.data??[],profile?.country);
   const totals=empty();data.forEach(b=>MATERIALS.forEach(m=>{totals[m]+=b[m];}));
   const shown=mat==='all'?MATERIALS.filter(m=>totals[m]>0):[mat];
   const points=Math.round((q.data??[]).filter(r=>inRange(range,r.created_at)).reduce((s,r)=>s+Number(r.points_awarded??0),0)*10)/10;
