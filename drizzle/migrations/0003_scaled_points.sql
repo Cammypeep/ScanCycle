@@ -1,0 +1,12 @@
+ALTER TABLE public.video_submissions ADD COLUMN points_awarded numeric(8,1) NOT NULL DEFAULT 0;
+UPDATE public.video_submissions SET points_awarded = coalesce(points,0);
+COMMENT ON COLUMN public.video_submissions.points IS 'DEPRECATED: replaced by points_awarded';
+CREATE INDEX IF NOT EXISTS video_submissions_user_created_idx ON public.video_submissions(user_id, created_at DESC);
+DROP FUNCTION public.friend_scores();
+CREATE FUNCTION public.friend_scores() RETURNS TABLE(id uuid, username text, full_name text, points numeric, status text, incoming boolean) LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT p.id,p.username,p.full_name,coalesce((SELECT sum(v.points_awarded) FROM public.video_submissions v WHERE v.user_id=p.id AND v.status='complete'),0),f.status,f.recipient=auth.uid() FROM public.friendships f JOIN public.profiles p ON p.id=CASE WHEN f.requester=auth.uid() THEN f.recipient ELSE f.requester END WHERE auth.uid() IN (f.requester,f.recipient); $$;
+REVOKE ALL ON FUNCTION public.friend_scores() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.friend_scores() TO authenticated;
+DROP FUNCTION public.leaderboard(text);
+CREATE FUNCTION public.leaderboard(_country text DEFAULT NULL) RETURNS TABLE(id uuid, username text, full_name text, country text, points numeric) LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT p.id,p.username,p.full_name,p.country,coalesce((SELECT sum(v.points_awarded) FROM public.video_submissions v WHERE v.user_id=p.id AND v.status='complete'),0) AS pts FROM public.profiles p WHERE p.username IS NOT NULL AND (_country IS NULL OR p.country=_country) ORDER BY pts DESC, p.username LIMIT 100; $$;
+REVOKE ALL ON FUNCTION public.leaderboard(text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.leaderboard(text) TO authenticated;

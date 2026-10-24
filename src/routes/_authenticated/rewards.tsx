@@ -1,16 +1,16 @@
 import {createFileRoute} from '@tanstack/react-router';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useServerFn} from '@tanstack/react-start';
-import {useEffect,useRef,useState} from 'react';
-import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target} from 'lucide-react';
+import {useEffect,useMemo,useRef,useState} from 'react';
+import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {supabase} from '@/integrations/supabase/client';
 import {profileQuery} from '@/lib/account';
 import {verifyVideo} from '@/lib/rewards.functions';
-import {verificationSchema,itemPoints,type Verification} from '@/lib/reward-rules';
+import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,type Verification} from '@/lib/reward-rules';
 import {BIN_SWATCH} from '@/lib/scan-types';
 
-export const Route=createFileRoute('/_authenticated/rewards')({head:()=>({meta:[{title:'Recycling rewards — ScrapSense'},{name:'description',content:'Earn 10 points per correctly recycled item with video verification.'},{property:'og:title',content:'Recycling rewards — ScrapSense'},{property:'og:description',content:'Your verified recycling points.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Rewards});
+export const Route=createFileRoute('/_authenticated/rewards')({head:()=>({meta:[{title:'Recycling rewards — ScrapSense'},{name:'description',content:'Earn points scaled to what you recycle, verified by video.'},{property:'og:title',content:'Recycling rewards — ScrapSense'},{property:'og:description',content:'Your verified recycling points.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Rewards});
 
 /** Matches the "Use the yellow recycling bin instead." guidance sentence. */
 const USE_BIN=/Use the ([a-z]+) ([a-z ]+?) bin(?: instead)?\./i;
@@ -41,13 +41,14 @@ function Rewards(){
   const {data:profile}=useQuery(profileQuery);
   const verify=useServerFn(verifyVideo);
   const input=useRef<HTMLInputElement>(null);
-  const [file,setFile]=useState<File|null>(null);
-  const [url,setUrl]=useState('');
+  const [files,setFiles]=useState<File[]>([]);
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState('');
   const [result,setResult]=useState<{result:Verification;points:number}|null>(null);
-
-  useEffect(()=>{if(!file){setUrl('');return;}const u=URL.createObjectURL(file);setUrl(u);return()=>URL.revokeObjectURL(u);},[file]);
+  const [now,setNow]=useState(Date.now());
+  const urls=useMemo(()=>files.map(f=>URL.createObjectURL(f)),[files]);
+  useEffect(()=>()=>urls.forEach(u=>URL.revokeObjectURL(u)),[urls]);
+  useEffect(()=>{const t=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(t);},[]);
 
   const history=useQuery({queryKey:['rewards',profile?.id],enabled:!!profile,queryFn:async()=>{
     const all=[];
@@ -59,51 +60,73 @@ function Rewards(){
     }
     return all;
   }});
+  const lastAt=history.data?.find(v=>v.status!=='failed')?.created_at;
+  const left=cooldownRemaining(lastAt,now);
+  const countdown=`${Math.floor(left/60000)}:${String(Math.ceil((left%60000)/1000)%60).padStart(2,'0')}`;
 
   async function run(){
-    if(!file||!profile)return;
+    if(!files.length||!profile)return;
     setBusy(true);setMessage('');setResult(null);
+    const paths:string[]=[];
     try{
-      const ext=file.type==='video/webm'?'webm':file.type==='video/quicktime'?'mov':'mp4';
-      const path=profile.id+'/'+crypto.randomUUID()+'.'+ext;
-      const {error}=await supabase.storage.from('recycling-videos').upload(path,file,{contentType:file.type,upsert:false});
-      if(error)throw error;
-      try{setResult(await verify({data:{path}}));}finally{await supabase.storage.from('recycling-videos').remove([path]);}
-      await qc.invalidateQueries({queryKey:['rewards']});
+      for(const file of files){
+        const ext=file.type==='video/webm'?'webm':file.type==='video/quicktime'?'mov':'mp4';
+        const path=profile.id+'/'+crypto.randomUUID()+'.'+ext;
+        const {error}=await supabase.storage.from('recycling-videos').upload(path,file,{contentType:file.type,upsert:false});
+        if(error)throw error;
+        paths.push(path);
+      }
+      setResult(await verify({data:{paths}}));setFiles([]);
     }catch(e){setMessage(e instanceof Error?e.message:'Verification failed.');}
-    finally{setBusy(false);}
+    finally{
+      if(paths.length)await supabase.storage.from('recycling-videos').remove(paths);
+      await qc.invalidateQueries({queryKey:['rewards']});
+      setBusy(false);
+    }
   }
 
-  const total=history.data?.filter(v=>v.status==='complete').reduce((sum,v)=>sum+(v.points??0),0)??0;
+  const total=Math.round((history.data?.filter(v=>v.status==='complete').reduce((sum,v)=>sum+Number(v.points_awarded??0),0)??0)*10)/10;
 
   return (
     <section className="mx-auto max-w-3xl px-4 py-10">
       <p className="font-mono text-xs uppercase text-primary">Recycling rewards</p>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Every item counts.</h1>
-        <span className="flex items-center gap-2 text-xl font-bold text-warning"><Trophy/>{total} points</span>
+        <span className="flex items-center gap-2 text-xl font-bold text-warning"><Trophy/>{formatPoints(total)} points</span>
       </div>
-      <p className="mt-3 text-muted-foreground">10 points per correctly recycled item · {profile?.country}</p>
+      <p className="mt-3 text-muted-foreground">Points scale with what you recycle: a sheet of paper is 0.1, a water bottle is 10 · {profile?.country}</p>
 
       <div className="mt-8 border-y border-border py-6">
-        {url?<video src={url} controls className="max-h-96 w-full"/>:<Video className="mx-auto my-6 h-16 w-16 text-primary"/>}
-        <input ref={input} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden"
+        {files.length?(
+          <div className="grid gap-3 sm:grid-cols-2">
+            {files.map((f,n)=>(
+              <div key={urls[n]} className="relative">
+                <video src={urls[n]} controls className="max-h-60 w-full rounded-lg"/>
+                <Button size="icon" variant="secondary" aria-label={'Remove '+f.name} disabled={busy} className="absolute right-2 top-2" onClick={()=>setFiles(files.filter((_,i)=>i!==n))}><X/></Button>
+              </div>
+            ))}
+          </div>
+        ):<Video className="mx-auto my-6 h-16 w-16 text-primary"/>}
+        <input ref={input} type="file" multiple accept="video/mp4,video/webm,video/quicktime" className="hidden"
           onChange={e=>{
-            const f=e.target.files?.[0];
-            if(!f)return;
-            if(!['video/mp4','video/webm','video/quicktime'].includes(f.type)||f.size>50*1024*1024||!f.size){setMessage('Choose a non-empty MP4, WebM or MOV video up to 50 MB.');return;}
-            setFile(f);setResult(null);setMessage('');
+            const picked=[...(e.target.files??[])];e.target.value='';
+            if(!picked.length)return;
+            const next=[...files,...picked];
+            if(picked.some(f=>!['video/mp4','video/webm','video/quicktime'].includes(f.type)||!f.size)){setMessage('Choose non-empty MP4, WebM or MOV videos.');return;}
+            if(next.length>5){setMessage('You can send up to 5 videos at once.');return;}
+            if(next.reduce((s,f)=>s+f.size,0)>50*1024*1024){setMessage('Keep all videos together under 50 MB.');return;}
+            setFiles(next);setResult(null);setMessage('');
           }}/>
         <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-          <li>Show the whole bin (its color or label) and the item clearly before you drop it.</li>
-          <li>Keep the camera steady and well lit.</li>
+          <li>Recycle in bulk: you can send up to 5 videos together, once every 10 minutes.</li>
+          <li>Show the whole bin (its color or label) and the items clearly before you drop them.</li>
           <li>Correct trash disposal earns 0 points; only correct recycling earns points.</li>
         </ul>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
-          <Button variant="outline" disabled={busy} onClick={()=>input.current?.click()}><Upload/>Choose video</Button>
-          <Button disabled={!file||busy} onClick={run}>{busy?'Verifying recycling…':'Verify & earn points'}</Button>
+          <Button variant="outline" disabled={busy||files.length>=5} onClick={()=>input.current?.click()}><Upload/>{files.length?'Add video':'Choose videos'}</Button>
+          <Button disabled={!files.length||busy||left>0} onClick={run}>{busy?'Verifying recycling…':left>0?`Next submission in ${countdown}`:`Verify ${files.length>1?files.length+' videos':''} & earn points`}</Button>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">Your video is private and removed after review. Unclear actions earn no points.</p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">Your videos are private and removed after review. Unclear actions earn no points.</p>
       </div>
 
       {message&&<p role="alert" className="mt-5 text-warning">{message}</p>}
@@ -111,7 +134,7 @@ function Rewards(){
       {result&&(
         <div className="mt-6">
           {result.points>0?(
-            <h2 className="text-2xl font-bold text-primary">+{result.points} points</h2>
+            <h2 className="text-2xl font-bold text-primary">+{formatPoints(result.points)} points</h2>
           ):(
             <p className="font-mono text-sm font-semibold uppercase tracking-widest text-muted-foreground">0 points earned</p>
           )}
@@ -123,7 +146,7 @@ function Rewards(){
               <li key={n} className="flex gap-3 py-4">
                 {i.outcome==='correct'?<CheckCircle2 className="shrink-0 text-primary"/>:<AlertTriangle className="shrink-0 text-warning"/>}
                 <div>
-                  <h3 className="font-semibold">{i.object} · {itemPoints(i)===10?'+10 points':'0 points'}</h3>
+                  <h3 className="font-semibold">{i.object}{(i.quantity??1)>1?' ×'+i.quantity:''} · {itemPoints(i)>0?'+'+formatPoints(itemPoints(i))+' points':'0 points'}</h3>
                   {result.points>0&&<p className={/use the .+ bin/i.test(i.guidance)?'mt-1 text-sm font-medium text-foreground':'mt-1 text-sm text-muted-foreground'}>
                     {i.outcome==='incorrect'?'You misplaced this item. Please put it in the correct bin. ':''}{i.guidance}
                   </p>}
@@ -141,7 +164,7 @@ function Rewards(){
         const parsed=verificationSchema.safeParse(v.result);
         return (
           <div key={v.id} className="border-b border-border py-4">
-            <div className="flex justify-between gap-4"><span>{new Date(v.created_at).toLocaleDateString()} · {v.status}</span><span className="text-primary">{v.points??0} points</span></div>
+            <div className="flex justify-between gap-4"><span>{new Date(v.created_at).toLocaleDateString()} · {v.status}</span><span className="text-primary">{formatPoints(Number(v.points_awarded??0))} points</span></div>
             {parsed.success&&<p className="mt-2 text-sm text-muted-foreground">{parsed.data.summary}</p>}
           </div>
         );

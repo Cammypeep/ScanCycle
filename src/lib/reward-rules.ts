@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import { binsFor, hasColorGuide } from './bin-guides';
-export const itemSchema=z.object({object:z.string().max(150),outcome:z.enum(['correct','incorrect','uncertain']),stream:z.enum(['recycling','trash','compost','glass','paper','packaging']).optional(),material:z.enum(['plastic','paper','cardboard','metal','glass','other']).optional(),guidance:z.string().max(500)});
+export const itemSchema=z.object({object:z.string().max(150),outcome:z.enum(['correct','incorrect','uncertain']),stream:z.enum(['recycling','trash','compost','glass','paper','packaging']).optional(),material:z.enum(['plastic','paper','cardboard','metal','glass','other']).optional(),size:z.enum(['small','regular','large']).optional(),quantity:z.number().int().min(1).max(200).optional(),guidance:z.string().max(500)});
 export const binSchema=z.object({color:z.string().max(40),labelText:z.string().max(100),visible:z.boolean()});
 export const verificationSchema=z.object({items:z.array(itemSchema).max(100),summary:z.string().max(1000),bin:binSchema.optional(),binMeaning:z.string().max(300).optional()});
 export type Verification=z.infer<typeof verificationSchema>;
+type Item=Verification['items'][number];
 export const MATERIALS=['plastic','paper','cardboard','metal','glass','other'] as const;
 export type Material=typeof MATERIALS[number];
 /** Item material from the AI, or a keyword guess for older results. */
@@ -17,8 +18,37 @@ export function materialOf(item:{object:string;material?:Material|undefined}):Ma
   if(/plastic|bottle|jug|tub|cup|container/.test(o))return 'plastic';
   return 'other';
 }
-export function itemPoints(item:Verification['items'][number]){return item.outcome==='correct'&&['recycling','glass','paper','packaging'].includes(item.stream??'')?10:0;}
-export function calculatePoints(items:Verification['items']){return items.reduce((total,item)=>total+itemPoints(item),0);}
+/** Points per single unit by material and size. The server decides values; the AI only reports material, size and count. */
+export const VALUE_TABLE:Record<Material,Record<'small'|'regular'|'large',number>>={
+  paper:{small:0.1,regular:1,large:2},
+  cardboard:{small:3,regular:4,large:6},
+  plastic:{small:4,regular:10,large:12},
+  metal:{small:6,regular:12,large:15},
+  glass:{small:6,regular:10,large:12},
+  other:{small:2,regular:5,large:8},
+};
+export const MAX_UNIT_POINTS=20;
+export const MAX_SUBMISSION_POINTS=200;
+const round1=(n:number)=>Math.round(n*10)/10;
+const eligible=(item:Item)=>item.outcome==='correct'&&['recycling','glass','paper','packaging'].includes(item.stream??'');
+/** Value of one unit of this item. */
+export function unitValue(item:Item):number{
+  // Results saved before scaled points had no size/quantity: keep their original 10.
+  if(!item.size&&!item.quantity&&!item.material)return 10;
+  const m=materialOf(item);const o=item.object.toLowerCase();
+  if(m==='paper'&&/sheet|page|receipt|napkin|flyer|note/.test(o))return 0.1;
+  if(m==='paper'&&/newspaper|magazine/.test(o))return 1;
+  if(m==='plastic'&&/\bcup|tub\b/.test(o))return 4;
+  return Math.min(MAX_UNIT_POINTS,VALUE_TABLE[m][item.size??'regular']);
+}
+export function itemPoints(item:Item){return eligible(item)?round1(unitValue(item)*(item.quantity??1)):0;}
+export function calculatePoints(items:Item[]){return Math.min(MAX_SUBMISSION_POINTS,round1(items.reduce((total,item)=>total+itemPoints(item),0)));}
+/** Count of correctly recycled units (for stats). */
+export function recycledUnits(items:Item[]){return items.filter(eligible).reduce((s,i)=>s+(i.quantity??1),0);}
+export const COOLDOWN_MS=10*60*1000;
+/** Milliseconds left before the next submission is allowed. */
+export function cooldownRemaining(lastSubmittedAt:string|null|undefined,now=Date.now()){if(!lastSubmittedAt)return 0;return Math.max(0,new Date(lastSubmittedAt).getTime()+COOLDOWN_MS-now);}
+export const formatPoints=(n:number)=>Number.isInteger(n)?String(n):n.toFixed(1);
 
 const norm=(c:string)=>c.trim().toLowerCase().replace('gray','grey');
 
