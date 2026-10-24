@@ -134,7 +134,7 @@ function Rewards(){
       {result&&(
         <div className="mt-6">
           {result.points>0?(
-            <h2 className="text-2xl font-bold text-primary">+{result.points} points</h2>
+            <h2 className="text-2xl font-bold text-primary">+{formatPoints(result.points)} points</h2>
           ):(
             <p className="font-mono text-sm font-semibold uppercase tracking-widest text-muted-foreground">0 points earned</p>
           )}
@@ -146,7 +146,7 @@ function Rewards(){
               <li key={n} className="flex gap-3 py-4">
                 {i.outcome==='correct'?<CheckCircle2 className="shrink-0 text-primary"/>:<AlertTriangle className="shrink-0 text-warning"/>}
                 <div>
-                  <h3 className="font-semibold">{i.object} · {itemPoints(i)===10?'+10 points':'0 points'}</h3>
+                  <h3 className="font-semibold">{i.object}{(i.quantity??1)>1?' ×'+i.quantity:''} · {itemPoints(i)>0?'+'+formatPoints(itemPoints(i))+' points':'0 points'}</h3>
                   {result.points>0&&<p className={/use the .+ bin/i.test(i.guidance)?'mt-1 text-sm font-medium text-foreground':'mt-1 text-sm text-muted-foreground'}>
                     {i.outcome==='incorrect'?'You misplaced this item. Please put it in the correct bin. ':''}{i.guidance}
                   </p>}
@@ -164,7 +164,7 @@ function Rewards(){
         const parsed=verificationSchema.safeParse(v.result);
         return (
           <div key={v.id} className="border-b border-border py-4">
-            <div className="flex justify-between gap-4"><span>{new Date(v.created_at).toLocaleDateString()} · {v.status}</span><span className="text-primary">{v.points??0} points</span></div>
+            <div className="flex justify-between gap-4"><span>{new Date(v.created_at).toLocaleDateString()} · {v.status}</span><span className="text-primary">{formatPoints(Number(v.points_awarded??0))} points</span></div>
             {parsed.success&&<p className="mt-2 text-sm text-muted-foreground">{parsed.data.summary}</p>}
           </div>
         );

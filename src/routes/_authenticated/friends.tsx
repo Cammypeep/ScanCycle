@@ -6,6 +6,7 @@ import {supabase} from '@/integrations/supabase/client';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {profileQuery} from '@/lib/account';
+import {formatPoints} from '@/lib/reward-rules';
 export const Route=createFileRoute('/_authenticated/friends')({head:()=>({meta:[{title:'Friends — ScrapSense'},{name:'description',content:'Add friends by username and compare recycling points.'},{property:'og:title',content:'Friends — ScrapSense'},{property:'og:description',content:'Your recycling friends and scores.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Friends});
 function Friends(){const qc=useQueryClient();const {data:profile}=useQuery(profileQuery);const [handle,setHandle]=useState('');const [message,setMessage]=useState('');const [busy,setBusy]=useState(false);const list=useQuery({queryKey:['friends'],queryFn:async()=>{const {data,error}=await supabase.rpc('friend_scores');if(error)throw error;return data;},refetchInterval:30000});
  async function request(){setBusy(true);setMessage('');try{if(!/^[a-z0-9_]{3,24}$/.test(handle.trim().toLowerCase()))throw new Error('Enter a valid username.');const {error}=await supabase.rpc('request_friend',{handle:handle.trim().toLowerCase()});if(error)throw error;setMessage('Friend request sent.');setHandle('');await qc.invalidateQueries({queryKey:['friends']});}catch(e){setMessage(e instanceof Error?e.message:'Could not add friend.');}finally{setBusy(false);}}

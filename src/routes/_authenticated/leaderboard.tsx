@@ -5,6 +5,7 @@ import {Trophy,Globe,MapPin} from 'lucide-react';
 import {supabase} from '@/integrations/supabase/client';
 import {Button} from '@/components/ui/button';
 import {profileQuery} from '@/lib/account';
+import {formatPoints} from '@/lib/reward-rules';
 
 export const Route=createFileRoute('/_authenticated/leaderboard')({head:()=>({meta:[{title:'Leaderboard — ScrapSense'},{name:'description',content:'See the top recyclers in your country and worldwide.'},{property:'og:title',content:'Leaderboard — ScrapSense'},{property:'og:description',content:'Top recyclers by country and worldwide.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Leaderboard});
 
