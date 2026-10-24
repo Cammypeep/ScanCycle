@@ -24,6 +24,10 @@ function Leaderboard(){
         <Button variant={scope==='country'?'default':'outline'} onClick={()=>setScope('country')}><MapPin/>{profile?.country||'My country'}</Button>
         <Button variant={scope==='world'?'default':'outline'} onClick={()=>setScope('world')}><Globe/>Worldwide</Button>
       </div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <Button variant={period==='week'?'default':'outline'} onClick={()=>setPeriod('week')}>This week</Button>
+        <Button variant={period==='month'?'default':'outline'} onClick={()=>setPeriod('month')}>This month</Button>
+      </div>
       {board.error&&<p className="mt-4 text-warning">Could not load the leaderboard.</p>}
       <ol className="mt-6 divide-y divide-border">
         {board.data?.length===0&&<p className="py-8 text-muted-foreground">No recyclers here yet.</p>}
