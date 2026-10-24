@@ -7,6 +7,9 @@ import {Button} from '@/components/ui/button';
 import {profileQuery} from '@/lib/account';
 import {formatPoints} from '@/lib/reward-rules';
 
+function startOfWeek(){const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7));d.setHours(0,0,0,0);return d.toISOString();}
+function startOfMonth(){const d=new Date();d.setDate(1);d.setHours(0,0,0,0);return d.toISOString();}
+
 export const Route=createFileRoute('/_authenticated/leaderboard')({head:()=>({meta:[{title:'Leaderboard — ScrapSense'},{name:'description',content:'See the top recyclers in your country and worldwide.'},{property:'og:title',content:'Leaderboard — ScrapSense'},{property:'og:description',content:'Top recyclers by country and worldwide.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Leaderboard});
 
 function Leaderboard(){
