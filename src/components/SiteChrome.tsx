@@ -39,7 +39,7 @@ export function SiteHeader() {
           <Link to="/history" className={linkCls} activeProps={{ className: "text-foreground bg-secondary" }}>
             <History className="h-4 w-4" /> <span className="hidden sm:inline">History</span>
           </Link>
-          <Link to="/rewards" className={linkCls} aria-label="Rewards"><Trophy className="h-4 w-4"/><span className="hidden sm:inline">Rewards</span></Link>
+          <Link to="/rewards" className={linkCls} aria-label="Recycle"><Trophy className="h-4 w-4"/><span className="hidden sm:inline">Recycle</span></Link>
           <Link to="/leaderboard" className={linkCls} aria-label="Leaderboard"><Medal className="h-4 w-4"/><span className="hidden sm:inline">Leaderboard</span></Link>
           <Link to="/stats" className={linkCls} aria-label="Graph"><BarChart3 className="h-4 w-4"/><span className="hidden sm:inline">Graph</span></Link>
           <Link to="/friends" className={linkCls} aria-label="Friends"><Users className="h-4 w-4"/><span className="hidden sm:inline">Friends</span></Link>
