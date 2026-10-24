@@ -135,6 +135,16 @@ export type Database = {
           username: string
         }[]
       }
+      leaderboard: {
+        Args: { _country?: string }
+        Returns: {
+          country: string
+          full_name: string
+          id: string
+          points: number
+          username: string
+        }[]
+      }
       request_friend: { Args: { handle: string }; Returns: undefined }
     }
     Enums: {

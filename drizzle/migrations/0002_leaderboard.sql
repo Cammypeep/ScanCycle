@@ -1,0 +1,3 @@
+CREATE FUNCTION public.leaderboard(_country text DEFAULT NULL) RETURNS TABLE(id uuid, username text, full_name text, country text, points bigint) LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT p.id,p.username,p.full_name,p.country,coalesce((SELECT sum(v.points) FROM public.video_submissions v WHERE v.user_id=p.id AND v.status='complete'),0)::bigint AS pts FROM public.profiles p WHERE p.username IS NOT NULL AND (_country IS NULL OR p.country=_country) ORDER BY pts DESC, p.username LIMIT 100; $$;
+REVOKE ALL ON FUNCTION public.leaderboard(text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.leaderboard(text) TO authenticated;
