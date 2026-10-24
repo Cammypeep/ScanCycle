@@ -10,7 +10,7 @@ import {verifyVideo} from '@/lib/rewards.functions';
 import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,type Verification} from '@/lib/reward-rules';
 import {BIN_SWATCH} from '@/lib/scan-types';
 
-export const Route=createFileRoute('/_authenticated/rewards')({head:()=>({meta:[{title:'Recycling rewards — ScrapSense'},{name:'description',content:'Earn points scaled to what you recycle, verified by video.'},{property:'og:title',content:'Recycling rewards — ScrapSense'},{property:'og:description',content:'Your verified recycling points.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Rewards});
+export const Route=createFileRoute('/_authenticated/rewards')({head:()=>({meta:[{title:'Recycle — ScrapSense'},{name:'description',content:'Earn points scaled to what you recycle, verified by video.'},{property:'og:title',content:'Recycle — ScrapSense'},{property:'og:description',content:'Your verified recycling points.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Rewards});
 
 /** Matches the "Use the yellow recycling bin instead." guidance sentence. */
 const USE_BIN=/Use the ([a-z]+) ([a-z ]+?) bin(?: instead)?\./i;
