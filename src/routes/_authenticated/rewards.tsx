@@ -124,9 +124,9 @@ function Rewards(){
                 {i.outcome==='correct'?<CheckCircle2 className="shrink-0 text-primary"/>:<AlertTriangle className="shrink-0 text-warning"/>}
                 <div>
                   <h3 className="font-semibold">{i.object} · {itemPoints(i)===10?'+10 points':'0 points'}</h3>
-                  <p className={/use the .+ bin/i.test(i.guidance)?'mt-1 text-sm font-medium text-foreground':'mt-1 text-sm text-muted-foreground'}>
+                  {result.points>0&&<p className={/use the .+ bin/i.test(i.guidance)?'mt-1 text-sm font-medium text-foreground':'mt-1 text-sm text-muted-foreground'}>
                     {i.outcome==='incorrect'?'You misplaced this item. Please put it in the correct bin. ':''}{i.guidance}
-                  </p>
+                  </p>}
                 </div>
               </li>
             ))}
