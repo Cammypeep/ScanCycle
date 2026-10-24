@@ -27,7 +27,7 @@ export function tidySummary(s:string):string{
   const t=s.replace(PREAMBLE,'').replace(/\s+/g,' ').trim();
   if(!t)return s.trim();
   const out=t.charAt(0).toUpperCase()+t.slice(1);
-  return out.length>180?out.slice(0,180).replace(/\s+\S*$/,'')+'.':out;
+  return out.length>180?out.slice(0,179).replace(/\s+\S*$/,'')+'.':out;
 }
 
 /** Server-side enforcement: an unidentifiable bin can never earn points. */
