@@ -7,7 +7,7 @@ export type Verification=z.infer<typeof verificationSchema>;
 export const MATERIALS=['plastic','paper','cardboard','metal','glass','other'] as const;
 export type Material=typeof MATERIALS[number];
 /** Item material from the AI, or a keyword guess for older results. */
-export function materialOf(item:{object:string;material?:Material}):Material{
+export function materialOf(item:{object:string;material?:Material|undefined}):Material{
   if(item.material)return item.material;
   const o=item.object.toLowerCase();
   if(/cardboard|carton|box/.test(o))return 'cardboard';
