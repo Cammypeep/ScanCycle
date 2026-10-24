@@ -5,7 +5,7 @@ import { profileQuery } from "@/lib/account";
 import { supabase } from "@/integrations/supabase/client";
 import { setHistoryOwner } from "@/lib/history";
 import { Button } from "@/components/ui/button";
-import { Recycle, ScanLine, History, Trophy, Users, Settings, LogOut, Medal } from "lucide-react";
+import { Recycle, ScanLine, History, Trophy, Users, Settings, LogOut, Medal, BarChart3 } from "lucide-react";
 
 export function Logo() {
   return (
@@ -41,6 +41,7 @@ export function SiteHeader() {
           </Link>
           <Link to="/rewards" className={linkCls} aria-label="Rewards"><Trophy className="h-4 w-4"/><span className="hidden sm:inline">Rewards</span></Link>
           <Link to="/leaderboard" className={linkCls} aria-label="Leaderboard"><Medal className="h-4 w-4"/><span className="hidden sm:inline">Leaderboard</span></Link>
+          <Link to="/stats" className={linkCls} aria-label="Graph"><BarChart3 className="h-4 w-4"/><span className="hidden sm:inline">Graph</span></Link>
           <Link to="/friends" className={linkCls} aria-label="Friends"><Users className="h-4 w-4"/><span className="hidden sm:inline">Friends</span></Link>
           <Link to="/settings" className={linkCls} aria-label="Settings"><Settings className="h-4 w-4"/><span className="hidden sm:inline">Settings</span></Link>
           <Button variant="ghost" size="icon" aria-label="Sign out" onClick={async()=>{await qc.cancelQueries();qc.clear();setHistoryOwner(null);await supabase.auth.signOut();navigate({to:"/auth",replace:true});}}><LogOut className="h-4 w-4"/></Button>
