@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- AI material analysis runs server-side in src/lib/analyze.functions.ts (Responses API, strict JSON schema); scan history lives only in browser localStorage — no backend DB by design for the MVP.
