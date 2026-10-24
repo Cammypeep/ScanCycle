@@ -14,13 +14,127 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      friendships: {
+        Row: {
+          created_at: string
+          recipient: string
+          requester: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          recipient: string
+          requester: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          recipient?: string
+          requester?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friendships_recipient_fkey"
+            columns: ["recipient"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_requester_fkey"
+            columns: ["requester"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          country: string
+          full_name: string
+          id: string
+          locality: string
+          username: string | null
+        }
+        Insert: {
+          country?: string
+          full_name?: string
+          id: string
+          locality?: string
+          username?: string | null
+        }
+        Update: {
+          country?: string
+          full_name?: string
+          id?: string
+          locality?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      video_submissions: {
+        Row: {
+          correct_items: number
+          created_at: string
+          id: string
+          points: number | null
+          result: Json | null
+          status: string
+          storage_path: string
+          user_id: string
+          video_hash: string
+        }
+        Insert: {
+          correct_items?: number
+          created_at?: string
+          id?: string
+          points?: number | null
+          result?: Json | null
+          status?: string
+          storage_path: string
+          user_id: string
+          video_hash: string
+        }
+        Update: {
+          correct_items?: number
+          created_at?: string
+          id?: string
+          points?: number | null
+          result?: Json | null
+          status?: string
+          storage_path?: string
+          user_id?: string
+          video_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      accept_friend: { Args: { sender: string }; Returns: undefined }
+      friend_scores: {
+        Args: never
+        Returns: {
+          id: string
+          incoming: boolean
+          points: number
+          status: string
+          username: string
+        }[]
+      }
+      request_friend: { Args: { handle: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
