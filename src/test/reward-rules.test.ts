@@ -8,6 +8,15 @@ it('grey bin in US with wrapper earns zero',()=>{expect(calculatePoints(enforceB
 it('label overrides color',()=>{expect(calculatePoints(enforceBin('Australia',{items:item,summary:'',bin:{color:'grey',labelText:'General waste',visible:true}}).items)).toBe(0);});
 it('invisible bin earns 0',()=>{expect(calculatePoints(enforceBin('United States',{items:item,summary:'',bin:{color:'',labelText:'',visible:false}}).items)).toBe(0);});});
 
+import {binColorFor} from '@/lib/reward-rules';
+describe('Non-standard bin color names the right bin',()=>{
+it('names the correct bin color and bin for the item',()=>{const v=enforceBin('Australia',{items:[{object:'snack wrapper',outcome:'correct' as const,stream:'trash' as const,guidance:''}],summary:'',bin:{color:'grey',labelText:'',visible:true}});expect(calculatePoints(v.items)).toBe(0);expect(v.items[0]?.guidance).toContain('red general waste bin');expect(v.items[0]?.guidance).toContain('snack wrapper');expect(v.summary).toContain('Use the red general waste bin instead.');});
+it('names the recycling bin when the color is not in the US guide',()=>{const v=enforceBin('United States',{items:[{object:'can',outcome:'correct' as const,stream:'recycling' as const,guidance:''}],summary:'',bin:{color:'purple',labelText:'',visible:true}});expect(v.items[0]?.guidance).toContain('blue recycling bin');expect(v.summary).toContain('Use the blue recycling bin instead.');});
+it('stays generic for a country without a color guide',()=>{const v=enforceBin('France',{items:[{object:'can',outcome:'correct' as const,stream:'recycling' as const,guidance:''}],summary:'',bin:{color:'grey',labelText:'',visible:true}});expect(v.items[0]?.guidance).toBe("Bin colors don't have a standard meaning we know for France, and no label was visible. No points were awarded.");expect(v.summary).not.toContain('Use the');});
+it('names the bin color when the bin is not visible',()=>{const v=enforceBin('United States',{items:[{object:'can',outcome:'correct' as const,stream:'recycling' as const,guidance:''}],summary:'',bin:{color:'',labelText:'',visible:false}});expect(v.items[0]?.guidance).toContain('blue recycling bin');});
+it('maps paper and glass streams to the mixed recycling bin',()=>{expect(binColorFor('United States','paper')?.color).toBe('blue');expect(binColorFor('Germany','packaging')?.color).toBe('yellow');expect(binColorFor('France','recycling')).toBeNull();});
+});
+
 import {tidySummary} from '@/lib/reward-rules';
 describe('Result sentence',()=>{
 it('drops a "this video shows" preamble',()=>{expect(tidySummary('This video shows a snack wrapper being disposed into the grey trash bin.')).toBe('A snack wrapper being disposed into the grey trash bin.');});
