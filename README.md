@@ -47,7 +47,7 @@ You need Node.js 20 or newer (Bun also works) and npm.
 
 ```sh
 git clone <this-repository-url>
-cd pixel-perfect-replay-5418
+cd <repository-name>
 npm install
 npm run dev
 ```
