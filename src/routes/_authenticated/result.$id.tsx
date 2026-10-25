@@ -11,9 +11,9 @@ export const Route = createFileRoute("/_authenticated/result/$id")({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Saved Scan — ScrapSense" },
-      { name: "description", content: "A saved ScrapSense material analysis." },
-      { property: "og:title", content: "Saved Scan — ScrapSense" },
+      { title: "Saved Scan — ScanCycle" },
+      { name: "description", content: "A saved ScanCycle material analysis." },
+      { property: "og:title", content: "Saved Scan — ScanCycle" },
       { property: "og:description", content: "Review a saved recycling analysis." },
       { name: "robots", content: "noindex" },
     ],

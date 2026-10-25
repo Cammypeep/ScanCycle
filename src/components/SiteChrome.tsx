@@ -5,7 +5,8 @@ import { profileQuery } from "@/lib/account";
 import { supabase } from "@/integrations/supabase/client";
 import { setHistoryOwner } from "@/lib/history";
 import { Button } from "@/components/ui/button";
-import { Recycle, ScanLine, Users, Settings, LogOut, Medal, BarChart3 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Recycle, ScanLine, Users, Settings, LogOut, Medal, BarChart3, Menu } from "lucide-react";
 
 export function Logo() {
   return (
@@ -14,7 +15,7 @@ export function Logo() {
         <Recycle className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
       </span>
       <span className="font-display text-lg font-bold tracking-tight">
-        Scrap<span className="text-emerald">Sense</span>
+        Scan<span className="text-emerald">Cycle</span>
       </span>
     </Link>
   );
@@ -39,9 +40,15 @@ export function SiteHeader() {
           <Link to="/rewards" className={linkCls} activeProps={{ className: "!text-foreground bg-primary/25 font-medium" }} aria-label="Recycle"><Recycle className="h-4 w-4"/><span className="hidden sm:inline">Recycle</span></Link>
           <Link to="/leaderboard" className={linkCls} activeProps={{ className: "!text-foreground bg-sun/25 font-medium" }} aria-label="Leaderboard"><Medal className="h-4 w-4"/><span className="hidden sm:inline">Leaderboard</span></Link>
           <Link to="/stats" className={linkCls} activeProps={{ className: "!text-foreground bg-sky/25 font-medium" }} aria-label="Graph"><BarChart3 className="h-4 w-4"/><span className="hidden sm:inline">Graph</span></Link>
-          <Link to="/friends" className={linkCls} activeProps={{ className: "!text-foreground bg-coral/25 font-medium" }} aria-label="Friends"><Users className="h-4 w-4"/><span className="hidden sm:inline">Friends</span></Link>
-          <Link to="/settings" className={linkCls} activeProps={{ className: "!text-foreground bg-secondary/25 font-medium" }} aria-label="Settings"><Settings className="h-4 w-4"/><span className="hidden sm:inline">Settings</span></Link>
-          <Button variant="ghost" size="icon" aria-label="Sign out" onClick={async()=>{await qc.cancelQueries();qc.clear();setHistoryOwner(null);await supabase.auth.signOut();navigate({to:"/auth",replace:true});}}><LogOut className="h-4 w-4"/></Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label="Menu"><Menu className="h-5 w-5"/></Button></DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem asChild><Link to="/friends"><Users className="h-4 w-4"/>Friends</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link to="/settings"><Settings className="h-4 w-4"/>Settings</Link></DropdownMenuItem>
+              <DropdownMenuSeparator/>
+              <DropdownMenuItem onSelect={async()=>{await qc.cancelQueries();qc.clear();setHistoryOwner(null);await supabase.auth.signOut();navigate({to:"/auth",replace:true});}}><LogOut className="h-4 w-4"/>Log out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           </> : <Link to="/auth" className={linkCls}>Sign in</Link>}
         </nav>
       </div>

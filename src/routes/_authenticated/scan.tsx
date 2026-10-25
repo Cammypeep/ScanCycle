@@ -18,9 +18,9 @@ export const Route = createFileRoute("/_authenticated/scan")({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "AI Scanner — ScrapSense" },
+      { title: "AI Scanner — ScanCycle" },
       { name: "description", content: "Upload or snap a photo and let AI identify the material and how to recycle it." },
-      { property: "og:title", content: "AI Scanner — ScrapSense" },
+      { property: "og:title", content: "AI Scanner — ScanCycle" },
       { property: "og:description", content: "Identify recyclable materials from a photo in seconds." },
     ],
   }),

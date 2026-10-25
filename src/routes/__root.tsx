@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ScrapSense — AI Recycling Assistant" },
+      { title: "ScanCycle — AI Recycling Assistant" },
       { name: "description", content: "Snap it. Identify it. Recycle it." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
