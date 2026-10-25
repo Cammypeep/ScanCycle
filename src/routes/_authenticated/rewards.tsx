@@ -36,20 +36,6 @@ function BinCallout({summary,binMeaning}:{summary:string;binMeaning?:string}){
   );
 }
 
-/** Grab one frame of a local video as a small JPEG. */
-async function grabFrame(file:File,seconds:number):Promise<Blob>{
-  const url=URL.createObjectURL(file);
-  try{
-    const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=url;
-    await new Promise<void>((res,rej)=>{v.onloadedmetadata=()=>res();v.onerror=()=>rej(new Error('video'));});
-    v.currentTime=Math.min(seconds,Math.max(0,(v.duration||0)-0.1));
-    await new Promise<void>((res,rej)=>{v.onseeked=()=>res();v.onerror=()=>rej(new Error('seek'));});
-    const scale=Math.min(1,480/Math.max(v.videoWidth,v.videoHeight));
-    const c=document.createElement('canvas');c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);
-    c.getContext('2d')!.drawImage(v,0,0,c.width,c.height);
-    return await new Promise<Blob>((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',0.8));
-  }finally{URL.revokeObjectURL(url);}
-}
 
 function Rewards(){
   const qc=useQueryClient();
