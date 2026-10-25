@@ -84,6 +84,7 @@ export type Database = {
           result: Json | null
           status: string
           storage_path: string
+          thumbnail_path: string | null
           user_id: string
           video_hash: string
         }
@@ -96,6 +97,7 @@ export type Database = {
           result?: Json | null
           status?: string
           storage_path: string
+          thumbnail_path?: string | null
           user_id: string
           video_hash: string
         }
@@ -108,6 +110,7 @@ export type Database = {
           result?: Json | null
           status?: string
           storage_path?: string
+          thumbnail_path?: string | null
           user_id?: string
           video_hash?: string
         }

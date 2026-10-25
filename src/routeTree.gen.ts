@@ -15,7 +15,6 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as WhyRecycleRouteImport } from './routes/why-recycle'
 import { Route as AuthenticatedFriendsRouteImport } from './routes/_authenticated/friends'
-import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedRewardsRouteImport } from './routes/_authenticated/rewards'
 import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
@@ -50,11 +49,6 @@ const WhyRecycleRoute = WhyRecycleRouteImport.update({
 const AuthenticatedFriendsRoute = AuthenticatedFriendsRouteImport.update({
   id: '/friends',
   path: '/friends',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLeaderboardRoute =
@@ -95,7 +89,6 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/why-recycle': typeof WhyRecycleRoute
   '/friends': typeof AuthenticatedFriendsRoute
-  '/history': typeof AuthenticatedHistoryRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/rewards': typeof AuthenticatedRewardsRoute
   '/scan': typeof AuthenticatedScanRoute
@@ -109,7 +102,6 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/why-recycle': typeof WhyRecycleRoute
   '/friends': typeof AuthenticatedFriendsRoute
-  '/history': typeof AuthenticatedHistoryRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/rewards': typeof AuthenticatedRewardsRoute
   '/scan': typeof AuthenticatedScanRoute
@@ -125,7 +117,6 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/why-recycle': typeof WhyRecycleRoute
   '/_authenticated/friends': typeof AuthenticatedFriendsRoute
-  '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/rewards': typeof AuthenticatedRewardsRoute
   '/_authenticated/scan': typeof AuthenticatedScanRoute
@@ -141,7 +132,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/why-recycle'
     | '/friends'
-    | '/history'
     | '/leaderboard'
     | '/rewards'
     | '/scan'
@@ -155,7 +145,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/why-recycle'
     | '/friends'
-    | '/history'
     | '/leaderboard'
     | '/rewards'
     | '/scan'
@@ -170,7 +159,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/why-recycle'
     | '/_authenticated/friends'
-    | '/_authenticated/history'
     | '/_authenticated/leaderboard'
     | '/_authenticated/rewards'
     | '/_authenticated/scan'
@@ -231,13 +219,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFriendsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/history': {
-      id: '/_authenticated/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof AuthenticatedHistoryRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/leaderboard': {
       id: '/_authenticated/leaderboard'
       path: '/leaderboard'
@@ -285,7 +266,6 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedFriendsRoute: typeof AuthenticatedFriendsRoute
-  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedRewardsRoute: typeof AuthenticatedRewardsRoute
   AuthenticatedScanRoute: typeof AuthenticatedScanRoute
@@ -296,7 +276,6 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFriendsRoute: AuthenticatedFriendsRoute,
-  AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedRewardsRoute: AuthenticatedRewardsRoute,
   AuthenticatedScanRoute: AuthenticatedScanRoute,

@@ -36,6 +36,13 @@
       "when": 1792885963906,
       "tag": "0004_leaderboard_period",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792887709825,
+      "tag": "0005_submission_thumbnails",
+      "breakpoints": true
     }
   ]
 }

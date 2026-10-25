@@ -29,7 +29,7 @@ function ResultPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <Button asChild variant="ghost"><Link to="/history"><ArrowLeft className="h-4 w-4" /> Back to history</Link></Button>
+        <Button asChild variant="ghost"><Link to="/scan"><ArrowLeft className="h-4 w-4" /> Back to scanner</Link></Button>
         <Button asChild variant="hero" size="lg"><Link to="/scan"><ScanLine className="h-4 w-4" /> Scan Another Object</Link></Button>
       </div>
       {rec === null && <p className="text-muted-foreground">This scan was not found on this device.</p>}

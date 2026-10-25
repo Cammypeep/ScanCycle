@@ -1,0 +1,3 @@
+ALTER TABLE public.video_submissions ADD COLUMN thumbnail_path text;
+CREATE POLICY thumb_insert_own ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'submission-thumbnails' AND (storage.foldername(name))[1] = auth.uid()::text);
+CREATE POLICY thumb_read_own ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'submission-thumbnails' AND (storage.foldername(name))[1] = auth.uid()::text);
