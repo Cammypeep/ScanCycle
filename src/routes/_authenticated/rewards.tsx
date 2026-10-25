@@ -2,12 +2,12 @@ import {createFileRoute} from '@tanstack/react-router';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useServerFn} from '@tanstack/react-start';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X,Recycle} from 'lucide-react';
+import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X,Recycle,Trash2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {supabase} from '@/integrations/supabase/client';
 import {profileQuery} from '@/lib/account';
-import {verifyVideo,saveThumbnail} from '@/lib/rewards.functions';
-import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,type Verification} from '@/lib/reward-rules';
+import {verifyVideo,generateSubmissionImage} from '@/lib/rewards.functions';
+import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,stripNoPoints,type Verification} from '@/lib/reward-rules';
 import {BIN_SWATCH} from '@/lib/scan-types';
 
 export const Route=createFileRoute('/_authenticated/rewards')({head:()=>({meta:[{title:'Recycle — ScrapSense'},{name:'description',content:'Earn points scaled to what you recycle, verified by video.'},{property:'og:title',content:'Recycle — ScrapSense'},{property:'og:description',content:'Your verified recycling points.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Rewards});
@@ -97,10 +97,8 @@ function Rewards(){
         paths.push(path);
       }
       const r=await verify({data:{paths}});setResult(r);
-      try{const f=files[r.frame.video]??files[0]!;const blob=await grabFrame(f,r.frame.seconds);
-        const {error}=await supabase.storage.from('submission-thumbnails').upload(profile.id+'/'+r.id+'.jpg',blob,{contentType:'image/jpeg',upsert:true});
-        if(!error)await saveThumb({data:{id:r.id}});}catch{/* photo is optional */}
-      setFiles([]);
+      setFiles([]);await qc.invalidateQueries({queryKey:['rewards']});
+      try{const g=await genImage({data:{id:r.id}});if(g.ok)await qc.invalidateQueries({queryKey:['rewards']});}catch{/* picture is optional */}
     }catch(e){setMessage(e instanceof Error?e.message:'Verification failed.');}
     finally{
       if(paths.length)await supabase.storage.from('recycling-videos').remove(paths);
@@ -188,10 +186,10 @@ function Rewards(){
         const parsed=verificationSchema.safeParse(v.result);
         return (
           <div key={v.id} className="flex gap-4 border-b border-border py-4">
-            {v.thumbnail_path&&thumbs.data?.[v.thumbnail_path]?<img src={thumbs.data[v.thumbnail_path]} alt="Recycled item" className="h-16 w-16 shrink-0 rounded-lg object-cover"/>:<span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-accent"><Recycle className="h-7 w-7 text-primary"/></span>}
+            {v.thumbnail_path&&thumbs.data?.[v.thumbnail_path]?<img src={thumbs.data[v.thumbnail_path]} alt="Recycled item" className="h-16 w-16 shrink-0 rounded-lg object-cover"/>:parsed.success&&parsed.data.items.length>0&&parsed.data.items.every(i=>itemPoints(i)===0&&(i.stream==='trash'||i.stream==='compost'))?<span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-muted"><Trash2 className="h-7 w-7 text-muted-foreground"/></span>:<span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-accent"><Recycle className="h-7 w-7 text-primary"/></span>}
             <div className="min-w-0 flex-1">
             <div className="flex justify-between gap-4"><span>{new Date(v.created_at).toLocaleDateString()} · {v.status}</span><span className="text-primary">{formatPoints(Number(v.points_awarded??0))} points</span></div>
-            {parsed.success&&<p className="mt-2 text-sm text-muted-foreground">{parsed.data.summary}</p>}
+            {parsed.success&&<p className="mt-2 text-sm text-muted-foreground">{stripNoPoints(parsed.data.summary)}</p>}
             </div>
           </div>
         );
