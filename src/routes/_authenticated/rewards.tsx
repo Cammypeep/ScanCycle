@@ -104,7 +104,7 @@ function Rewards(){
         <h1 className="text-3xl font-bold">Every item counts.</h1>
         <span className="flex items-center gap-2 text-xl font-bold text-warning"><Trophy/>{formatPoints(total)} points</span>
       </div>
-      <p className="mt-3 text-muted-foreground">Points scale with what you recycle: a sheet of paper is 0.1, a water bottle is 10 · {profile?.country}</p>
+      <p className="mt-3 text-muted-foreground">Points scale based on what and how many items are recycled.</p>
 
       <div className="mt-8 border-y border-border py-6">
         {files.length?(
