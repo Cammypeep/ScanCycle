@@ -2,12 +2,12 @@ import {createFileRoute} from '@tanstack/react-router';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useServerFn} from '@tanstack/react-start';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X,Recycle,Trash2} from 'lucide-react';
+import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X,Recycle,Trash2,HelpCircle} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {supabase} from '@/integrations/supabase/client';
 import {profileQuery} from '@/lib/account';
-import {verifyVideo,generateSubmissionImage} from '@/lib/rewards.functions';
-import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,stripNoPoints,type Verification} from '@/lib/reward-rules';
+import {verifyVideo} from '@/lib/rewards.functions';
+import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,stripNoPoints,submissionIcon,type Verification} from '@/lib/reward-rules';
 import {BIN_SWATCH} from '@/lib/scan-types';
 
 export const Route=createFileRoute('/_authenticated/rewards')({head:()=>({meta:[{title:'Recycle — ScrapSense'},{name:'description',content:'Earn points scaled to what you recycle, verified by video.'},{property:'og:title',content:'Recycle — ScrapSense'},{property:'og:description',content:'Your verified recycling points.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Rewards});
@@ -37,10 +37,18 @@ function BinCallout({summary,binMeaning}:{summary:string;binMeaning?:string}){
 }
 
 
+/** Picture shown for a saved submission. */
+function SubmissionIcon({points,items}:{points:number;items:Verification['items']}){
+  const icon=submissionIcon(points,items);
+  if(icon==='garbage')return <span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-muted"><Trash2 className="h-7 w-7 text-muted-foreground"/></span>;
+  if(icon==='unknown')return <span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-muted"><HelpCircle className="h-7 w-7 text-muted-foreground"/></span>;
+  return <span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-accent"><Recycle className="h-7 w-7 text-primary"/></span>;
+}
+
 function Rewards(){
   const qc=useQueryClient();
   const {data:profile}=useQuery(profileQuery);
-  const verify=useServerFn(verifyVideo);const genImage=useServerFn(generateSubmissionImage);
+  const verify=useServerFn(verifyVideo);
   const input=useRef<HTMLInputElement>(null);
   const [files,setFiles]=useState<File[]>([]);
   const [busy,setBusy]=useState(false);
@@ -61,11 +69,6 @@ function Rewards(){
     }
     return all;
   }});
-  const thumbPaths=(history.data??[]).slice(0,20).map(v=>v.thumbnail_path).filter((p):p is string=>!!p);
-  const thumbs=useQuery({queryKey:['thumbs',thumbPaths],enabled:thumbPaths.length>0,staleTime:30*60_000,queryFn:async()=>{
-    const {data}=await supabase.storage.from('submission-thumbnails').createSignedUrls(thumbPaths,3600);
-    return Object.fromEntries((data??[]).filter(d=>d.signedUrl).map(d=>[d.path,d.signedUrl]));
-  }});
   const lastAt=history.data?.find(v=>v.status!=='failed')?.created_at;
   const left=cooldownRemaining(lastAt,now);
   const countdown=`${Math.floor(left/60000)}:${String(Math.ceil((left%60000)/1000)%60).padStart(2,'0')}`;
@@ -84,7 +87,6 @@ function Rewards(){
       }
       const r=await verify({data:{paths}});setResult(r);
       setFiles([]);await qc.invalidateQueries({queryKey:['rewards']});
-      try{const g=await genImage({data:{id:r.id}});if(g.ok)await qc.invalidateQueries({queryKey:['rewards']});}catch{/* picture is optional */}
     }catch(e){setMessage(e instanceof Error?e.message:'Verification failed.');}
     finally{
       if(paths.length)await supabase.storage.from('recycling-videos').remove(paths);
@@ -172,7 +174,7 @@ function Rewards(){
         const parsed=verificationSchema.safeParse(v.result);
         return (
           <div key={v.id} className="flex gap-4 border-b border-border py-4">
-            {v.thumbnail_path&&thumbs.data?.[v.thumbnail_path]?<img src={thumbs.data[v.thumbnail_path]} alt="Recycled item" className="h-16 w-16 shrink-0 rounded-lg object-cover"/>:parsed.success&&parsed.data.items.length>0&&parsed.data.items.every(i=>itemPoints(i)===0&&(i.stream==='trash'||i.stream==='compost'))?<span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-muted"><Trash2 className="h-7 w-7 text-muted-foreground"/></span>:<span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-accent"><Recycle className="h-7 w-7 text-primary"/></span>}
+            <SubmissionIcon points={Number(v.points_awarded??0)} items={parsed.success?parsed.data.items:[]}/>
             <div className="min-w-0 flex-1">
             <div className="flex justify-between gap-4"><span>{new Date(v.created_at).toLocaleDateString()} · {v.status}</span><span className="text-primary">{formatPoints(Number(v.points_awarded??0))} points</span></div>
             {parsed.success&&<p className="mt-2 text-sm text-muted-foreground">{stripNoPoints(parsed.data.summary)}</p>}

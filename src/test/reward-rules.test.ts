@@ -33,3 +33,11 @@ it('the saved result never opens with the footage preamble',()=>{const v=enforce
  });
 import {stripNoPoints} from '@/lib/reward-rules';
 it('strips "no points were awarded" from descriptions',()=>{expect(stripNoPoints('The bin was not visible in the video, so no points were awarded.')).toBe('The bin was not visible in the video.');expect(stripNoPoints('Grey bins are odd. No points were awarded. Use the red bin.')).toBe('Grey bins are odd. Use the red bin.');});
+
+import {submissionIcon} from '@/lib/reward-rules';
+describe('Submission icon',()=>{
+it('shows the recycle symbol when points were earned',()=>{expect(submissionIcon(10,[{object:'can',outcome:'correct',stream:'recycling',guidance:''}])).toBe('recycle');});
+it('shows a garbage bin when waste went into the correct trash bin',()=>{expect(submissionIcon(0,[{object:'snack wrapper',outcome:'correct',stream:'trash',guidance:''}])).toBe('garbage');});
+it('shows a question mark when nothing was detected',()=>{expect(submissionIcon(0,[])).toBe('unknown');});
+it('shows a question mark when the item went into the wrong bin',()=>{expect(submissionIcon(0,[{object:'can',outcome:'incorrect',stream:'recycling',guidance:''}])).toBe('unknown');});
+});
