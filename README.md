@@ -81,26 +81,3 @@ entries (no `VITE_` prefix) are read server-side. Never put a secret key in this
 | `npm run test:watch` | Re-run tests on change |
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier |
-
-## Project layout
-
-```
-src/
-  routes/          pages: auth, scan, rewards, leaderboard, stats, friends, settings
-  routes/_authenticated/   pages that require an account
-  lib/             AI analysis, bin rules, reward rules, impact maths
-  components/      shared UI
-supabase/          backend config and migrations
-```
-
-## Testing switches
-
-Two flags exist to make manual testing easier and should be set back before a real
-launch:
-
-- `ALLOW_REPEAT_VIDEO_SUBMISSIONS` in `src/lib/video-submission-key.ts` — `true` lets the
-  same video be submitted more than once.
-- `COOLDOWN_ENABLED` in `src/lib/reward-rules.ts` — `false` skips the 10-minute wait
-  between submissions.
-
-This project was built with [Lovable](https://lovable.dev).
