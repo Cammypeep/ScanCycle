@@ -5,7 +5,7 @@ import { profileQuery } from "@/lib/account";
 import { supabase } from "@/integrations/supabase/client";
 import { setHistoryOwner } from "@/lib/history";
 import { Button } from "@/components/ui/button";
-import { Recycle, ScanLine, History, Trophy, Users, Settings, LogOut, Medal, BarChart3 } from "lucide-react";
+import { Recycle, ScanLine, History, Users, Settings, LogOut, Medal, BarChart3 } from "lucide-react";
 
 export function Logo() {
   return (
@@ -40,6 +40,7 @@ export function SiteHeader() {
           <Link to="/history" className={linkCls} activeProps={{ className: "text-foreground bg-secondary" }}>
             <History className="h-4 w-4" /> <span className="hidden sm:inline">History</span>
           </Link>
+
 
           <Link to="/leaderboard" className={linkCls} aria-label="Leaderboard"><Medal className="h-4 w-4"/><span className="hidden sm:inline">Leaderboard</span></Link>
           <Link to="/stats" className={linkCls} aria-label="Graph"><BarChart3 className="h-4 w-4"/><span className="hidden sm:inline">Graph</span></Link>
