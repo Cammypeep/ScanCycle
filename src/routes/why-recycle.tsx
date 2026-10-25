@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/why-recycle")({
   head: () => ({
     meta: [
-      { title: "Why Recycling Is Important — ScrapSense" },
+      { title: "Why Recycling Is Important — ScanCycle" },
       { name: "description", content: "How recycling saves energy, resources and landfill space." },
-      { property: "og:title", content: "Why Recycling Is Important — ScrapSense" },
+      { property: "og:title", content: "Why Recycling Is Important — ScanCycle" },
       { property: "og:description", content: "How recycling saves energy, resources and landfill space." },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary" },

@@ -38,7 +38,7 @@ const schema = {
   },
 };
 
-const INSTRUCTIONS = `You are ScrapSense, a careful recycling assistant. Look at the photo and identify the main object and its likely materials.
+const INSTRUCTIONS = `You are ScanCycle, a careful recycling assistant. Look at the photo and identify the main object and its likely materials.
 Rules:
 - Base everything on what is visible. Never invent numeric confidence scores or percentages.
 - A photo cannot determine exact metal alloy or guarantee recyclability; say so when relevant.

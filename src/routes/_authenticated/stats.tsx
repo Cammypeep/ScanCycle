@@ -10,7 +10,7 @@ import {Button} from '@/components/ui/button';
 import {profileQuery} from '@/lib/account';
 import {MATERIALS,materialOf,itemPoints,formatPoints,verificationSchema,type Material} from '@/lib/reward-rules';
 
-export const Route=createFileRoute('/_authenticated/stats')({head:()=>({meta:[{title:'My Recycling Graph — ScrapSense'},{name:'description',content:'See how much plastic, paper, metal and glass you recycled this week, month and year.'},{property:'og:title',content:'My Recycling Graph — ScrapSense'},{property:'og:description',content:'Your recycling over time, by material.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Stats});
+export const Route=createFileRoute('/_authenticated/stats')({head:()=>({meta:[{title:'My Recycling Graph — ScanCycle'},{name:'description',content:'See how much plastic, paper, metal and glass you recycled this week, month and year.'},{property:'og:title',content:'My Recycling Graph — ScanCycle'},{property:'og:description',content:'Your recycling over time, by material.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Stats});
 
 type Range='week'|'month'|'year'|'all';
 type Row={created_at:string;result:unknown;points_awarded?:number|null};
