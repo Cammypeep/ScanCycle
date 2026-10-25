@@ -1,13 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Upload, Camera, Sparkles, RotateCcw, X, AlertCircle, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ResultView } from "@/components/ResultView";
 import { analyzeImage } from "@/lib/analyze.functions";
-import { addScan, toJpegDataUrl } from "@/lib/history";
-import type { Analysis } from "@/lib/scan-types";
+import { addScan, loadHistory, toJpegDataUrl } from "@/lib/history";
+import { BIN_SWATCH, type Analysis, type ScanRecord } from "@/lib/scan-types";
 import { cn } from "@/lib/utils";
 import sampleCan from "@/assets/sample-can.jpg";
 import sampleSteel from "@/assets/sample-steel.jpg";
@@ -190,6 +190,35 @@ function ScanPage() {
         </div>
         <p className="mt-2 text-xs text-muted-foreground">Examples are analyzed live by the same AI — no pre-made answers.</p>
       </div>
+
+      <RecentScans />
+    </div>
+  );
+}
+
+function RecentScans() {
+  const [items, setItems] = useState<ScanRecord[]>([]);
+  useEffect(() => setItems(loadHistory().slice(0, 6)), []);
+  if (!items.length) return null;
+  return (
+    <div className="mt-12">
+      <h2 className="text-xl font-bold">Recently scanned</h2>
+      <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+        {items.map((s) => (
+          <li key={s.id}>
+            <Link to="/result/$id" params={{ id: s.id }} className="glass flex items-center gap-3 rounded-2xl p-3 transition-colors hover:border-primary/50">
+              <img src={s.image} alt={s.analysis.objectName} className="h-16 w-16 shrink-0 rounded-xl object-cover" />
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{s.analysis.objectName}</p>
+                <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                  {s.analysis.binColor && <span aria-hidden className="h-4 w-4 shrink-0 rounded border border-border" style={{ backgroundColor: BIN_SWATCH[s.analysis.binColor] }} />}
+                  <span className="truncate">{s.analysis.binName ?? "Check local bin"}</span>
+                </p>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
