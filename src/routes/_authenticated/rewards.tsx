@@ -2,11 +2,11 @@ import {createFileRoute} from '@tanstack/react-router';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useServerFn} from '@tanstack/react-start';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X} from 'lucide-react';
+import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X,Recycle} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {supabase} from '@/integrations/supabase/client';
 import {profileQuery} from '@/lib/account';
-import {verifyVideo} from '@/lib/rewards.functions';
+import {verifyVideo,saveThumbnail} from '@/lib/rewards.functions';
 import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,type Verification} from '@/lib/reward-rules';
 import {BIN_SWATCH} from '@/lib/scan-types';
 
@@ -36,10 +36,25 @@ function BinCallout({summary,binMeaning}:{summary:string;binMeaning?:string}){
   );
 }
 
+/** Grab one frame of a local video as a small JPEG. */
+async function grabFrame(file:File,seconds:number):Promise<Blob>{
+  const url=URL.createObjectURL(file);
+  try{
+    const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=url;
+    await new Promise<void>((res,rej)=>{v.onloadedmetadata=()=>res();v.onerror=()=>rej(new Error('video'));});
+    v.currentTime=Math.min(seconds,Math.max(0,(v.duration||0)-0.1));
+    await new Promise<void>((res,rej)=>{v.onseeked=()=>res();v.onerror=()=>rej(new Error('seek'));});
+    const scale=Math.min(1,480/Math.max(v.videoWidth,v.videoHeight));
+    const c=document.createElement('canvas');c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);
+    c.getContext('2d')!.drawImage(v,0,0,c.width,c.height);
+    return await new Promise<Blob>((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',0.8));
+  }finally{URL.revokeObjectURL(url);}
+}
+
 function Rewards(){
   const qc=useQueryClient();
   const {data:profile}=useQuery(profileQuery);
-  const verify=useServerFn(verifyVideo);
+  const verify=useServerFn(verifyVideo);const saveThumb=useServerFn(saveThumbnail);
   const input=useRef<HTMLInputElement>(null);
   const [files,setFiles]=useState<File[]>([]);
   const [busy,setBusy]=useState(false);
@@ -60,6 +75,11 @@ function Rewards(){
     }
     return all;
   }});
+  const thumbPaths=(history.data??[]).slice(0,20).map(v=>v.thumbnail_path).filter((p):p is string=>!!p);
+  const thumbs=useQuery({queryKey:['thumbs',thumbPaths],enabled:thumbPaths.length>0,staleTime:30*60_000,queryFn:async()=>{
+    const {data}=await supabase.storage.from('submission-thumbnails').createSignedUrls(thumbPaths,3600);
+    return Object.fromEntries((data??[]).filter(d=>d.signedUrl).map(d=>[d.path,d.signedUrl]));
+  }});
   const lastAt=history.data?.find(v=>v.status!=='failed')?.created_at;
   const left=cooldownRemaining(lastAt,now);
   const countdown=`${Math.floor(left/60000)}:${String(Math.ceil((left%60000)/1000)%60).padStart(2,'0')}`;
@@ -76,7 +96,11 @@ function Rewards(){
         if(error)throw error;
         paths.push(path);
       }
-      setResult(await verify({data:{paths}}));setFiles([]);
+      const r=await verify({data:{paths}});setResult(r);
+      try{const f=files[r.frame.video]??files[0]!;const blob=await grabFrame(f,r.frame.seconds);
+        const {error}=await supabase.storage.from('submission-thumbnails').upload(profile.id+'/'+r.id+'.jpg',blob,{contentType:'image/jpeg',upsert:true});
+        if(!error)await saveThumb({data:{id:r.id}});}catch{/* photo is optional */}
+      setFiles([]);
     }catch(e){setMessage(e instanceof Error?e.message:'Verification failed.');}
     finally{
       if(paths.length)await supabase.storage.from('recycling-videos').remove(paths);
@@ -163,9 +187,12 @@ function Rewards(){
       {history.data?.slice(0,20).map(v=>{
         const parsed=verificationSchema.safeParse(v.result);
         return (
-          <div key={v.id} className="border-b border-border py-4">
+          <div key={v.id} className="flex gap-4 border-b border-border py-4">
+            {v.thumbnail_path&&thumbs.data?.[v.thumbnail_path]?<img src={thumbs.data[v.thumbnail_path]} alt="Recycled item" className="h-16 w-16 shrink-0 rounded-lg object-cover"/>:<span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-accent"><Recycle className="h-7 w-7 text-primary"/></span>}
+            <div className="min-w-0 flex-1">
             <div className="flex justify-between gap-4"><span>{new Date(v.created_at).toLocaleDateString()} · {v.status}</span><span className="text-primary">{formatPoints(Number(v.points_awarded??0))} points</span></div>
             {parsed.success&&<p className="mt-2 text-sm text-muted-foreground">{parsed.data.summary}</p>}
+            </div>
           </div>
         );
       })}
