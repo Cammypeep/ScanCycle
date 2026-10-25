@@ -1,7 +1,7 @@
 import {createServerFn} from '@tanstack/react-start';
 import {requireSupabaseAuth} from '@/integrations/supabase/auth-middleware';
 import {z} from 'zod';
-import {itemPoints,calculatePoints,verificationSchema,enforceBin,cooldownRemaining,recycledUnits} from './reward-rules';
+import {calculatePoints,verificationSchema,enforceBin,cooldownRemaining,recycledUnits} from './reward-rules';
 import {binsFor} from './bin-guides';
 import {videoSubmissionKey} from './video-submission-key';
 const pathRule=z.string().max(200).regex(/^[a-z0-9-]+\/[a-z0-9-]+\.(mp4|webm|mov)$/);
