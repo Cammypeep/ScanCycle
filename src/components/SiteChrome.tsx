@@ -37,8 +37,6 @@ export function SiteHeader() {
             <ScanLine className="h-4 w-4" /> <span className="hidden sm:inline">Scanner</span>
           </Link>
           <Link to="/rewards" className={linkCls} aria-label="Recycle"><Recycle className="h-4 w-4"/><span className="hidden sm:inline">Recycle</span></Link>
-
-
           <Link to="/leaderboard" className={linkCls} aria-label="Leaderboard"><Medal className="h-4 w-4"/><span className="hidden sm:inline">Leaderboard</span></Link>
           <Link to="/stats" className={linkCls} aria-label="Graph"><BarChart3 className="h-4 w-4"/><span className="hidden sm:inline">Graph</span></Link>
           <Link to="/friends" className={linkCls} aria-label="Friends"><Users className="h-4 w-4"/><span className="hidden sm:inline">Friends</span></Link>
