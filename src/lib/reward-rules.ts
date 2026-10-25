@@ -56,12 +56,12 @@ const norm=(c:string)=>c.trim().toLowerCase().replace('gray','grey');
 
 /** Decides what the detected bin means in the user's country. Returns null meaning when the bin can't be identified. */
 export function resolveBin(country:string,bin:z.infer<typeof binSchema>):{ok:true;meaning:string}|{ok:false;reason:string}{
-  if(!bin.visible)return {ok:false,reason:'The bin was not visible in the video, so no points were awarded.'};
+  if(!bin.visible)return {ok:false,reason:'The bin was not visible in the video.'};
   if(bin.labelText.trim())return {ok:true,meaning:`Bin label reads "${bin.labelText.trim()}".`};
   const color=norm(bin.color);
-  if(!hasColorGuide(country))return {ok:false,reason:`Bin colors don't have a standard meaning we know for ${country}, and no label was visible. No points were awarded.`};
+  if(!hasColorGuide(country))return {ok:false,reason:`Bin colors don't have a standard meaning we know for ${country}, and no label was visible.`};
   const match=binsFor(country).find(b=>norm(b.color)===color||b.label.toLowerCase().includes(color));
-  if(!match){const c=color.charAt(0).toUpperCase()+color.slice(1);return {ok:false,reason:`${c} bins aren't a standard bin color in ${country}, so we can't tell what this bin is for. No points were awarded.`};}
+  if(!match){const c=color.charAt(0).toUpperCase()+color.slice(1);return {ok:false,reason:`${c} bins aren't a standard bin color in ${country}, so we can't tell what this bin is for.`};}
   return {ok:true,meaning:match.label};
 }
 
@@ -105,4 +105,9 @@ export function enforceBin(country:string,v:Verification):Verification{
     const b=hints[n];
     return b?{...i,outcome:'uncertain' as const,guidance:`${r.reason} For ${i.object}, use the ${b.color} ${streamWord(b.stream)} bin.`}:{...i,outcome:'uncertain' as const,guidance:r.reason};
   })};
+}
+
+/** Removes "no points were awarded" phrasing; the 0 points badge already says it. */
+export function stripNoPoints(s:string):string{
+  return s.replace(/,?\s*(so|and)?\s*no points (were|was) (awarded|earned|given)\.?/gi,'.').replace(/\.\s*\./g,'.').replace(/\s+\./g,'.').replace(/\s+/g,' ').trim();
 }

@@ -2,12 +2,12 @@ import {createFileRoute} from '@tanstack/react-router';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useServerFn} from '@tanstack/react-start';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X,Recycle} from 'lucide-react';
+import {Trophy,Upload,CheckCircle2,AlertTriangle,Video,Target,X,Recycle,Trash2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {supabase} from '@/integrations/supabase/client';
 import {profileQuery} from '@/lib/account';
-import {verifyVideo,saveThumbnail} from '@/lib/rewards.functions';
-import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,type Verification} from '@/lib/reward-rules';
+import {verifyVideo,generateSubmissionImage} from '@/lib/rewards.functions';
+import {verificationSchema,itemPoints,cooldownRemaining,formatPoints,stripNoPoints,type Verification} from '@/lib/reward-rules';
 import {BIN_SWATCH} from '@/lib/scan-types';
 
 export const Route=createFileRoute('/_authenticated/rewards')({head:()=>({meta:[{title:'Recycle — ScrapSense'},{name:'description',content:'Earn points scaled to what you recycle, verified by video.'},{property:'og:title',content:'Recycle — ScrapSense'},{property:'og:description',content:'Your verified recycling points.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Rewards});
@@ -36,25 +36,11 @@ function BinCallout({summary,binMeaning}:{summary:string;binMeaning?:string}){
   );
 }
 
-/** Grab one frame of a local video as a small JPEG. */
-async function grabFrame(file:File,seconds:number):Promise<Blob>{
-  const url=URL.createObjectURL(file);
-  try{
-    const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=url;
-    await new Promise<void>((res,rej)=>{v.onloadedmetadata=()=>res();v.onerror=()=>rej(new Error('video'));});
-    v.currentTime=Math.min(seconds,Math.max(0,(v.duration||0)-0.1));
-    await new Promise<void>((res,rej)=>{v.onseeked=()=>res();v.onerror=()=>rej(new Error('seek'));});
-    const scale=Math.min(1,480/Math.max(v.videoWidth,v.videoHeight));
-    const c=document.createElement('canvas');c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);
-    c.getContext('2d')!.drawImage(v,0,0,c.width,c.height);
-    return await new Promise<Blob>((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',0.8));
-  }finally{URL.revokeObjectURL(url);}
-}
 
 function Rewards(){
   const qc=useQueryClient();
   const {data:profile}=useQuery(profileQuery);
-  const verify=useServerFn(verifyVideo);const saveThumb=useServerFn(saveThumbnail);
+  const verify=useServerFn(verifyVideo);const genImage=useServerFn(generateSubmissionImage);
   const input=useRef<HTMLInputElement>(null);
   const [files,setFiles]=useState<File[]>([]);
   const [busy,setBusy]=useState(false);
@@ -97,10 +83,8 @@ function Rewards(){
         paths.push(path);
       }
       const r=await verify({data:{paths}});setResult(r);
-      try{const f=files[r.frame.video]??files[0]!;const blob=await grabFrame(f,r.frame.seconds);
-        const {error}=await supabase.storage.from('submission-thumbnails').upload(profile.id+'/'+r.id+'.jpg',blob,{contentType:'image/jpeg',upsert:true});
-        if(!error)await saveThumb({data:{id:r.id}});}catch{/* photo is optional */}
-      setFiles([]);
+      setFiles([]);await qc.invalidateQueries({queryKey:['rewards']});
+      try{const g=await genImage({data:{id:r.id}});if(g.ok)await qc.invalidateQueries({queryKey:['rewards']});}catch{/* picture is optional */}
     }catch(e){setMessage(e instanceof Error?e.message:'Verification failed.');}
     finally{
       if(paths.length)await supabase.storage.from('recycling-videos').remove(paths);
@@ -162,7 +146,7 @@ function Rewards(){
           ):(
             <p className="font-mono text-sm font-semibold uppercase tracking-widest text-muted-foreground">0 points earned</p>
           )}
-          {result.points===0&&<BinCallout summary={result.result.summary} binMeaning={result.result.binMeaning??''}/>}
+          {result.points===0&&<BinCallout summary={stripNoPoints(result.result.summary)} binMeaning={stripNoPoints(result.result.binMeaning??'')}/>}
           {result.points>0&&<p className="mt-2">{result.result.summary}</p>}
           {result.points>0&&result.result.bin&&<p className="mt-3 text-sm text-muted-foreground">Bin seen: {result.result.bin.visible?result.result.bin.color:'not visible'}{result.result.binMeaning?' · '+result.result.binMeaning:''}</p>}
           <ul className="mt-4 divide-y divide-border">
@@ -188,10 +172,10 @@ function Rewards(){
         const parsed=verificationSchema.safeParse(v.result);
         return (
           <div key={v.id} className="flex gap-4 border-b border-border py-4">
-            {v.thumbnail_path&&thumbs.data?.[v.thumbnail_path]?<img src={thumbs.data[v.thumbnail_path]} alt="Recycled item" className="h-16 w-16 shrink-0 rounded-lg object-cover"/>:<span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-accent"><Recycle className="h-7 w-7 text-primary"/></span>}
+            {v.thumbnail_path&&thumbs.data?.[v.thumbnail_path]?<img src={thumbs.data[v.thumbnail_path]} alt="Recycled item" className="h-16 w-16 shrink-0 rounded-lg object-cover"/>:parsed.success&&parsed.data.items.length>0&&parsed.data.items.every(i=>itemPoints(i)===0&&(i.stream==='trash'||i.stream==='compost'))?<span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-muted"><Trash2 className="h-7 w-7 text-muted-foreground"/></span>:<span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-accent"><Recycle className="h-7 w-7 text-primary"/></span>}
             <div className="min-w-0 flex-1">
             <div className="flex justify-between gap-4"><span>{new Date(v.created_at).toLocaleDateString()} · {v.status}</span><span className="text-primary">{formatPoints(Number(v.points_awarded??0))} points</span></div>
-            {parsed.success&&<p className="mt-2 text-sm text-muted-foreground">{parsed.data.summary}</p>}
+            {parsed.success&&<p className="mt-2 text-sm text-muted-foreground">{stripNoPoints(parsed.data.summary)}</p>}
             </div>
           </div>
         );
