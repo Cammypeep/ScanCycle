@@ -54,7 +54,7 @@ async function grabFrame(file:File,seconds:number):Promise<Blob>{
 function Rewards(){
   const qc=useQueryClient();
   const {data:profile}=useQuery(profileQuery);
-  const verify=useServerFn(verifyVideo);const saveThumb=useServerFn(saveThumbnail);
+  const verify=useServerFn(verifyVideo);const genImage=useServerFn(generateSubmissionImage);
   const input=useRef<HTMLInputElement>(null);
   const [files,setFiles]=useState<File[]>([]);
   const [busy,setBusy]=useState(false);
@@ -160,7 +160,7 @@ function Rewards(){
           ):(
             <p className="font-mono text-sm font-semibold uppercase tracking-widest text-muted-foreground">0 points earned</p>
           )}
-          {result.points===0&&<BinCallout summary={result.result.summary} binMeaning={result.result.binMeaning??''}/>}
+          {result.points===0&&<BinCallout summary={stripNoPoints(result.result.summary)} binMeaning={stripNoPoints(result.result.binMeaning??'')}/>}
           {result.points>0&&<p className="mt-2">{result.result.summary}</p>}
           {result.points>0&&result.result.bin&&<p className="mt-3 text-sm text-muted-foreground">Bin seen: {result.result.bin.visible?result.result.bin.color:'not visible'}{result.result.binMeaning?' · '+result.result.binMeaning:''}</p>}
           <ul className="mt-4 divide-y divide-border">
