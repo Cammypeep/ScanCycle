@@ -1,0 +1,8 @@
+{
+  "name": "ScanCycle",
+  "short_name": "ScanCycle",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone"
+}
