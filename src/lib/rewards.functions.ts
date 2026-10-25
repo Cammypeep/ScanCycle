@@ -44,20 +44,3 @@ First identify the bin the items go into: report its main color in one plain wor
  return {result,points,id:row.id as string};
  }catch(e){await supabaseAdmin.from('video_submissions').update({status:'failed'}).eq('id',row.id);throw new Error(e instanceof Error?e.message:'Verification failed. No points awarded.');}
 });
-
-export const generateSubmissionImage=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator((v:unknown)=>z.object({id:z.string().uuid()}).parse(v)).handler(async({data,context})=>{
- const {data:row}=await context.supabase.from('video_submissions').select('result').eq('id',data.id).eq('user_id',context.userId).maybeSingle();
- const parsed=verificationSchema.safeParse(row?.result);if(!parsed.success)return {ok:false};
- const items=parsed.data.items.filter(i=>itemPoints(i)>0);if(!items.length)return {ok:false};
- const key=process.env['LOVABLE_API_KEY'];if(!key)return {ok:false};
- const list=items.map(i=>`${i.quantity??1} ${i.object}`).join(', ');
- const res=await fetch('https://ai.gateway.lovable.dev/v1/images/generations',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({model:'openai/gpt-image-2.5-sunburst',prompt:`Clean product photo of exactly these items, grouped together: ${list}. Soft studio light, plain light background, no text, no logos, no people.`,size:'1024x1024',quality:'low'})});
- if(!res.ok){console.error('image gen failed',res.status,await res.text());return {ok:false};}
- const j=await res.json();const b64=j?.data?.[0]?.b64_json;if(!b64)return {ok:false};
- const bin=atob(b64);const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
- const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
- const path=`${context.userId}/${data.id}.png`;
- const {error:ue}=await supabaseAdmin.storage.from('submission-thumbnails').upload(path,bytes,{contentType:'image/png',upsert:true});if(ue)return {ok:false};
- await supabaseAdmin.from('video_submissions').update({thumbnail_path:path}).eq('id',data.id).eq('user_id',context.userId);
- return {ok:true};
-});

@@ -111,3 +111,11 @@ export function enforceBin(country:string,v:Verification):Verification{
 export function stripNoPoints(s:string):string{
   return s.replace(/,?\s*(so|and)?\s*no points (were|was) (awarded|earned|given)\.?/gi,'.').replace(/\.\s*\./g,'.').replace(/\s+\./g,'.').replace(/\s+/g,' ').trim();
 }
+
+export type SubmissionIcon='recycle'|'garbage'|'unknown';
+/** Icon for a saved submission: recycle symbol when points were earned, garbage bin when waste went into the correct trash bin, question mark when nothing could be detected. */
+export function submissionIcon(points:number,items:Item[]):SubmissionIcon{
+  if(points>0)return 'recycle';
+  if(items.length&&items.every(i=>i.outcome==='correct'&&(i.stream==='trash'||i.stream==='compost')))return 'garbage';
+  return 'unknown';
+}
